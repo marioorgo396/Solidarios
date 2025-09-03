@@ -5,17 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alumnos Solidarios</title>
 
-<!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script>
   (function(){ emailjs.init("nXxJ4Ujpxo56o0BUT"); })();
 </script>
 
 <style>
-body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, red, yellow, orange); }
-header { display: flex; justify-content: space-between; padding: 15px 25px;
-  font-weight: bold; color: black; font-size: 20px; background: rgba(255,255,255,0.7); }
+body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; background: linear-gradient(135deg, red, yellow, orange); }
+header { display: flex; justify-content: space-between; padding: 15px 25px; font-weight: bold; color: black; font-size: 20px; background: rgba(255,255,255,0.7); }
 .login-container { height: calc(100% - 60px); display: flex; justify-content: center; align-items: center; }
 .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); width: 320px; max-width: 90%; }
 .card input, .card button, select { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; }
@@ -32,12 +29,12 @@ header { display: flex; justify-content: space-between; padding: 15px 25px;
 </style>
 </head>
 <body>
+
 <header>
   <div>Voluntariado</div>
   <div>Alumnos Solidarios</div>
 </header>
 
-<!-- LOGIN -->
 <div id="login" class="login-container">
   <div class="card">
     <h2>Iniciar Sesión</h2>
@@ -49,7 +46,6 @@ header { display: flex; justify-content: space-between; padding: 15px 25px;
   </div>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
   <h2 id="welcome" style="margin-left:20px;"></h2>
   <div class="app">
@@ -58,7 +54,6 @@ header { display: flex; justify-content: space-between; padding: 15px 25px;
       <div id="listaEventosLateral"></div>
     </div>
     <div id="right">
-      <!-- Botones Admin -->
       <div id="adminButtons" class="hidden">
         <button class="btn" onclick="panelUsuarios()">Usuarios</button>
         <button class="btn" onclick="panelProfesores()">Profesores</button>
@@ -67,7 +62,6 @@ header { display: flex; justify-content: space-between; padding: 15px 25px;
         <button class="btn" onclick="panelAutorizaciones()">Autorizaciones</button>
         <button class="btn" onclick="panelCambioPass()">Cambiar Contraseña</button>
       </div>
-      <!-- Botones Usuario -->
       <div id="userButtons" class="hidden">
         <button class="btn" onclick="panelEventosUsuario()">Próximos eventos</button>
         <button class="btn" onclick="panelChatUsuario()">Chat con Admin</button>
@@ -89,7 +83,6 @@ async function fetchAPI(path, options){
   if(res.status!==204) return res.json(); else return null;
 }
 
-// LOGIN
 document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
   const u=document.getElementById("loginUser").value.trim();
@@ -118,7 +111,7 @@ function startApp(){
 
 function logout(){ location.reload(); }
 
-/* ===== CAMBIO DE CONTRASEÑA ===== */
+/* ==================== CAMBIO CONTRASEÑA ==================== */
 function panelCambioPass(){
   const c=document.getElementById("panelArea");
   c.innerHTML=`
@@ -152,9 +145,9 @@ function panelCambioPass(){
   };
 }
 
-/* ===== PANEL USUARIOS ===== */
+/* ==================== PANEL USUARIOS ==================== */
 async function panelUsuarios(){
-  const c = document.getElementById("panelArea");
+  const c=document.getElementById("panelArea");
   const usuarios=await fetchAPI('/usuarios');
   c.innerHTML=`
     <div class="panel">
@@ -198,7 +191,7 @@ async function panelUsuarios(){
 }
 async function delUsuario(user){ await fetchAPI(`/usuarios/${user}`,{method:'DELETE'}); panelUsuarios(); }
 
-/* ===== PANEL PROFESORES ===== */
+/* ==================== PANEL PROFESORES ==================== */
 async function panelProfesores(){
   const c=document.getElementById("panelArea");
   const profs=await fetchAPI('/profesores');
@@ -234,7 +227,7 @@ async function panelProfesores(){
 }
 async function delProf(email){ await fetchAPI(`/profesores/${email}`,{method:'DELETE'}); panelProfesores(); }
 
-/* ===== PANEL EVENTOS ===== */
+/* ==================== PANEL EVENTOS ==================== */
 async function panelEventos(){
   const c=document.getElementById("panelArea");
   const eventos=await fetchAPI('/eventos');
@@ -262,7 +255,7 @@ async function panelEventos(){
     renderEventosLateral();
   };
   const lista=document.getElementById("listaEventos");
-  eventos.forEach((ev)=>{
+  eventos.forEach(ev=>{
     let div=document.createElement("div");
     div.className="list-item";
     const alumnos=(ev.asistencias||[]).map(a=>`${a.nombre} (${a.clase}) → ${a.resp}`).join("<br>");
@@ -283,7 +276,7 @@ async function renderEventosLateral(){
   });
 }
 
-/* ===== PANEL USUARIO EVENTOS ===== */
+/* ==================== PANEL EVENTOS USUARIO ==================== */
 async function panelEventosUsuario(){
   const c=document.getElementById("panelArea");
   const eventos=await fetchAPI('/eventos');
@@ -313,7 +306,7 @@ async function responder(nombreEv,i,r){
   renderEventosLateral();
 }
 
-/* ===== CHAT USUARIO ===== */
+/* ==================== PANEL CHAT ==================== */
 async function panelChatUsuario(){
   const c=document.getElementById("panelArea");
   const msgs=await fetchAPI(`/chat/${currentUser.user}`) || [];
@@ -337,7 +330,6 @@ async function panelChatUsuario(){
   };
 }
 
-/* ===== CHAT ADMIN ===== */
 async function panelChatAdmin(){
   const c=document.getElementById("panelArea");
   const usuarios=await fetchAPI('/usuarios');
@@ -349,6 +341,7 @@ async function panelChatAdmin(){
     c.firstElementChild.appendChild(div);
   });
 }
+
 async function abrirChatAdmin(user){
   const c=document.getElementById("panelArea");
   const msgs=await fetchAPI(`/chat/${user}`) || [];
@@ -372,20 +365,17 @@ async function abrirChatAdmin(user){
   };
 }
 
-/* ===== AUTORIZACIONES ===== */
+/* ==================== AUTORIZACIONES ==================== */
 async function panelAutorizaciones(){
   const c=document.getElementById("panelArea");
   const eventos=await fetchAPI('/eventos');
   c.innerHTML=`<div class="panel"><h3>Autorizaciones pendientes</h3></div>`;
   const panel=c.querySelector(".panel");
-  eventos.forEach((ev)=>{
+  eventos.forEach(ev=>{
     if(ev.asistencias && ev.asistencias.length>0){
       let div=document.createElement("div");
       div.className="list-item";
-      let alumnos=ev.asistencias.map(a=>
-        `${a.nombre} (${a.clase}) → ${a.resp} 
-         ${a.resp==="Sí"?`<button onclick="enviarAutorizacion('${a.nombre}','${a.clase}','${ev.ini}','${ev.fin}','${a.profEmail}')">✉️ Autorizar</button>`:""}`  
-      ).join("<br>");
+      let alumnos=ev.asistencias.map(a=>`${a.nombre} (${a.clase}) → ${a.resp} ${a.resp==="Sí"?`<button onclick="enviarAutorizacion('${a.nombre}','${a.clase}','${ev.ini}','${ev.fin}','${a.profEmail}')">✉️ Autorizar</button>`:""}`).join("<br>");
       div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos}`;
       panel.appendChild(div);
     }
@@ -393,17 +383,11 @@ async function panelAutorizaciones(){
 }
 
 function enviarAutorizacion(nombre,clase,ini,fin,profMail){
-  emailjs.send("service_eb2pt87","template_0z24xrk",{
-    to_email: profMail,
-    nombre: nombre,
-    clase: clase,
-    ini: ini,
-    fin: fin
-  }).then(()=>{ alert("✅ Autorización enviada a "+profMail); },
-    err=>{ alert("❌ Error: "+JSON.stringify(err)); });
+  emailjs.send("service_eb2pt87","template_0z24xrk",{ to_email: profMail, nombre, clase, ini, fin })
+    .then(()=>alert("✅ Autorización enviada a "+profMail))
+    .catch(err=>alert("❌ Error: "+JSON.stringify(err)));
 }
-
 </script>
+
 </body>
 </html>
-
