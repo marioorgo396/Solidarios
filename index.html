@@ -189,5 +189,221 @@ async function panelUsuarios(){
     panelUsuarios();
   };
   const lista=document.getElementById("listaUsuarios");
-  usuarios.forEach(u
+  usuarios.forEach(u=>{
+    let div=document.createElement("div");
+    div.className="list-item";
+    div.innerHTML=`${u.nombre} (${u.user}, ${u.clase}) <button onclick="delUsuario('${u.user}')">❌</button>`;
+    lista.appendChild(div);
+  });
+}
+async function delUsuario(user){ await fetchAPI(`/usuarios/${user}`,{method:'DELETE'}); panelUsuarios(); }
+
+/* ===== PANEL PROFESORES ===== */
+async function panelProfesores(){
+  const c=document.getElementById("panelArea");
+  const profs=await fetchAPI('/profesores');
+  c.innerHTML=`
+    <div class="panel">
+      <h3>Gestionar Profesores</h3>
+      <form id="formProf">
+        <input type="text" id="profName" placeholder="Nombre Profesor" required>
+        <input type="email" id="profMail" placeholder="Correo Profesor" required>
+        <button type="submit">Agregar</button>
+      </form>
+      <h4>Profesores registrados</h4>
+      <div id="listaProfs"></div>
+    </div>
+  `;
+  document.getElementById("formProf").onsubmit=async e=>{
+    e.preventDefault();
+    const form=e.target;
+    await fetchAPI('/profesores', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({nombre:form.profName.value,email:form.profMail.value})
+    });
+    panelProfesores();
+  };
+  const lista=document.getElementById("listaProfs");
+  profs.forEach(p=>{
+    let div=document.createElement("div");
+    div.className="list-item";
+    div.innerHTML=`${p.nombre} (${p.email}) <button onclick="delProf('${p.email}')">❌</button>`;
+    lista.appendChild(div);
+  });
+}
+async function delProf(email){ await fetchAPI(`/profesores/${email}`,{method:'DELETE'}); panelProfesores(); }
+
+/* ===== PANEL EVENTOS ===== */
+async function panelEventos(){
+  const c=document.getElementById("panelArea");
+  const eventos=await fetchAPI('/eventos');
+  c.innerHTML=`
+    <div class="panel">
+      <h3>Gestionar Eventos</h3>
+      <form id="formEvento">
+        <input type="text" id="evName" placeholder="Nombre evento" required>
+        <input type="time" id="evIni" required> a <input type="time" id="evFin" required>
+        <button type="submit">Agregar</button>
+      </form>
+      <h4>Eventos existentes</h4>
+      <div id="listaEventos"></div>
+    </div>
+  `;
+  document.getElementById("formEvento").onsubmit=async e=>{
+    e.preventDefault();
+    const form=e.target;
+    await fetchAPI('/eventos', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({nombre:form.evName.value, ini:form.evIni.value, fin:form.evFin.value, asistencias:[]})
+    });
+    panelEventos();
+    renderEventosLateral();
+  };
+  const lista=document.getElementById("listaEventos");
+  eventos.forEach((ev)=>{
+    let div=document.createElement("div");
+    div.className="list-item";
+    const alumnos=(ev.asistencias||[]).map(a=>`${a.nombre} (${a.clase}) → ${a.resp}`).join("<br>");
+    div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos||"Sin respuestas"} <button onclick="delEvento('${ev.nombre}')">❌</button>`;
+    lista.appendChild(div);
+  });
+}
+async function delEvento(nombre){ await fetchAPI(`/eventos/${nombre}`,{method:'DELETE'}); panelEventos(); renderEventosLateral(); }
+
+async function renderEventosLateral(){
+  const eventos=await fetchAPI('/eventos');
+  const cont=document.getElementById("listaEventosLateral");
+  cont.innerHTML="";
+  eventos.forEach(ev=>{
+    let div=document.createElement("div");
+    div.textContent=`${ev.nombre} (${ev.ini}-${ev.fin})`;
+    cont.appendChild(div);
+  });
+}
+
+/* ===== PANEL USUARIO EVENTOS ===== */
+async function panelEventosUsuario(){
+  const c=document.getElementById("panelArea");
+  const eventos=await fetchAPI('/eventos');
+  const profs=await fetchAPI('/profesores');
+  c.innerHTML="<div class='panel'><h3>Próximos eventos</h3></div>";
+  eventos.forEach((ev,i)=>{
+    let div=document.createElement("div");
+    div.className="list-item";
+    let options = profs.length ? profs.map(p=>`<option value="${p.email}">${p.nombre}</option>`).join("") : `<option value="">(Sin profesores)</option>`;
+    div.innerHTML=`${ev.nombre} ${ev.ini}-${ev.fin}
+      <select id="profSel${i}">${options}</select>
+      <button onclick="responder('${ev.nombre}',${i},'Sí')">✅ Sí</button>
+      <button onclick="responder('${ev.nombre}',${i},'No')">❌ No</button>`;
+    c.firstElementChild.appendChild(div);
+  });
+}
+async function responder(nombreEv,i,r){
+  const eventos=await fetchAPI('/eventos');
+  const ev=eventos.find(e=>e.nombre===nombreEv);
+  ev.asistencias=(ev.asistencias||[]).filter(a=>a.user!==currentUser.user);
+  const sel=document.getElementById("profSel"+i);
+  const profEmail=sel?sel.value:"";
+  ev.asistencias.push({user:currentUser.user,nombre:currentUser.nombre,clase:currentUser.clase,resp:r,profEmail});
+  await fetchAPI(`/eventos/${ev.nombre}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(ev)});
+  alert("Respuesta guardada");
+  panelEventosUsuario();
+  renderEventosLateral();
+}
+
+/* ===== CHAT USUARIO ===== */
+async function panelChatUsuario(){
+  const c=document.getElementById("panelArea");
+  const msgs=await fetchAPI(`/chat/${currentUser.user}`) || [];
+  c.innerHTML=`
+    <div class="panel">
+      <h3>Chat con Admin</h3>
+      <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
+      <form id="formChat">
+        <input type="text" id="msgTxt" placeholder="Mensaje">
+        <button type="submit">Enviar</button>
+      </form>
+    </div>`;
+  const msgsDiv=c.querySelector("#msgs");
+  msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
+  c.querySelector("#formChat").onsubmit=async e=>{
+    e.preventDefault();
+    const arr=await fetchAPI(`/chat/${currentUser.user}`) || [];
+    arr.push((currentUser.user||"usuario")+": "+c.querySelector("#msgTxt").value);
+    await fetchAPI(`/chat/${currentUser.user}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+    panelChatUsuario();
+  };
+}
+
+/* ===== CHAT ADMIN ===== */
+async function panelChatAdmin(){
+  const c=document.getElementById("panelArea");
+  const usuarios=await fetchAPI('/usuarios');
+  c.innerHTML="<div class='panel'><h3>Chats de usuarios</h3></div>";
+  usuarios.forEach(u=>{
+    let div=document.createElement("div");
+    div.className="list-item";
+    div.innerHTML=`${u.nombre} (${u.user}) <button onclick="abrirChatAdmin('${u.user}')">Abrir chat</button>`;
+    c.firstElementChild.appendChild(div);
+  });
+}
+async function abrirChatAdmin(user){
+  const c=document.getElementById("panelArea");
+  const msgs=await fetchAPI(`/chat/${user}`) || [];
+  c.innerHTML=`
+    <div class="panel">
+      <h3>Chat con ${user}</h3>
+      <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
+      <form id="formChat">
+        <input type="text" id="msgTxt" placeholder="Mensaje">
+        <button type="submit">Enviar</button>
+      </form>
+    </div>`;
+  const msgsDiv=c.querySelector("#msgs");
+  msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
+  c.querySelector("#formChat").onsubmit=async e=>{
+    e.preventDefault();
+    const arr=await fetchAPI(`/chat/${user}`) || [];
+    arr.push("Admin: "+c.querySelector("#msgTxt").value);
+    await fetchAPI(`/chat/${user}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+    abrirChatAdmin(user);
+  };
+}
+
+/* ===== AUTORIZACIONES ===== */
+async function panelAutorizaciones(){
+  const c=document.getElementById("panelArea");
+  const eventos=await fetchAPI('/eventos');
+  c.innerHTML=`<div class="panel"><h3>Autorizaciones pendientes</h3></div>`;
+  const panel=c.querySelector(".panel");
+  eventos.forEach((ev)=>{
+    if(ev.asistencias && ev.asistencias.length>0){
+      let div=document.createElement("div");
+      div.className="list-item";
+      let alumnos=ev.asistencias.map(a=>
+        `${a.nombre} (${a.clase}) → ${a.resp} 
+         ${a.resp==="Sí"?`<button onclick="enviarAutorizacion('${a.nombre}','${a.clase}','${ev.ini}','${ev.fin}','${a.profEmail}')">✉️ Autorizar</button>`:""}`  
+      ).join("<br>");
+      div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos}`;
+      panel.appendChild(div);
+    }
+  });
+}
+
+function enviarAutorizacion(nombre,clase,ini,fin,profMail){
+  emailjs.send("service_eb2pt87","template_0z24xrk",{
+    to_email: profMail,
+    nombre: nombre,
+    clase: clase,
+    ini: ini,
+    fin: fin
+  }).then(()=>{ alert("✅ Autorización enviada a "+profMail); },
+    err=>{ alert("❌ Error: "+JSON.stringify(err)); });
+}
+
+</script>
+</body>
+</html>
 
