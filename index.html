@@ -74,21 +74,26 @@ header { display: flex; justify-content: space-between; padding: 15px 25px; font
 </div>
 
 <script>
+const API_URL="http://localhost:3000"; // Cambiar si host diferente
 let currentUser=null;
 const ADMIN_USERS=["admin1","admin2"];
 const ADMIN_PASS_DEFAULT="Solidarios25";
 
+// ==================== FUNCIONES UTILES ====================
 async function fetchAPI(path, options){ 
-  const res=await fetch('http://localhost:3000'+path, options);
+  const res=await fetch(API_URL+path, options);
   if(res.status!==204) return res.json(); else return null;
 }
 
+function logout(){ location.reload(); }
+
+// ==================== LOGIN ====================
 document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
   const u=document.getElementById("loginUser").value.trim();
   const p=document.getElementById("loginPass").value.trim();
   if(ADMIN_USERS.includes(u) && p===ADMIN_PASS_DEFAULT){
-    currentUser={username:u, role:"Admin"};
+    currentUser={username:u,role:"Admin"};
     startApp();
     return;
   }
@@ -109,9 +114,7 @@ function startApp(){
   document.getElementById("panelArea").innerHTML="";
 }
 
-function logout(){ location.reload(); }
-
-/* ==================== CAMBIO CONTRASEÑA ==================== */
+// ==================== PANEL CAMBIAR CONTRASEÑA ====================
 function panelCambioPass(){
   const c=document.getElementById("panelArea");
   c.innerHTML=`
@@ -145,7 +148,7 @@ function panelCambioPass(){
   };
 }
 
-/* ==================== PANEL USUARIOS ==================== */
+// ==================== PANEL USUARIOS ====================
 async function panelUsuarios(){
   const c=document.getElementById("panelArea");
   const usuarios=await fetchAPI('/usuarios');
@@ -156,12 +159,7 @@ async function panelUsuarios(){
         <input type="text" id="newUser" placeholder="Usuario" required>
         <input type="password" id="newPass" placeholder="Contraseña" required>
         <input type="text" id="nombre" placeholder="Nombre completo" required>
-        <select id="clase">
-          ${["1ºESO","2ºESO","3ºESO","4ºESO"].map(curso=>
-            Array.from({length:curso==="4ºESO"?4:5},(_,i)=>`${curso} ${String.fromCharCode(65+i)}`)
-            .map(op=>`<option>${op}</option>`).join("")
-          ).join("")}
-        </select>
+        <select id="clase">${["1ºESO","2ºESO","3ºESO","4ºESO"].map(curso=>Array.from({length:curso==="4ºESO"?4:5},(_,i)=>`${curso} ${String.fromCharCode(65+i)}`).map(op=>`<option>${op}</option>`).join("")).join("")}</select>
         <button type="submit">Agregar</button>
       </form>
       <h4>Usuarios existentes</h4>
@@ -174,10 +172,7 @@ async function panelUsuarios(){
     await fetchAPI('/usuarios', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        user:form.newUser.value, pass:form.newPass.value,
-        nombre:form.nombre.value, clase:form.clase.value
-      })
+      body: JSON.stringify({user:form.newUser.value, pass:form.newPass.value, nombre:form.nombre.value, clase:form.clase.value})
     });
     panelUsuarios();
   };
@@ -191,7 +186,7 @@ async function panelUsuarios(){
 }
 async function delUsuario(user){ await fetchAPI(`/usuarios/${user}`,{method:'DELETE'}); panelUsuarios(); }
 
-/* ==================== PANEL PROFESORES ==================== */
+// ==================== PROFESORES ====================
 async function panelProfesores(){
   const c=document.getElementById("panelArea");
   const profs=await fetchAPI('/profesores');
@@ -227,7 +222,7 @@ async function panelProfesores(){
 }
 async function delProf(email){ await fetchAPI(`/profesores/${email}`,{method:'DELETE'}); panelProfesores(); }
 
-/* ==================== PANEL EVENTOS ==================== */
+// ==================== EVENTOS ====================
 async function panelEventos(){
   const c=document.getElementById("panelArea");
   const eventos=await fetchAPI('/eventos');
@@ -276,7 +271,7 @@ async function renderEventosLateral(){
   });
 }
 
-/* ==================== PANEL EVENTOS USUARIO ==================== */
+// ==================== EVENTOS USUARIO ====================
 async function panelEventosUsuario(){
   const c=document.getElementById("panelArea");
   const eventos=await fetchAPI('/eventos');
@@ -285,51 +280,50 @@ async function panelEventosUsuario(){
   eventos.forEach((ev,i)=>{
     let div=document.createElement("div");
     div.className="list-item";
-    let options = profs.length ? profs.map(p=>`<option value="${p.email}">${p.nombre}</option>`).join("") : `<option value="">(Sin profesores)</option>`;
+    let options=profs.length? profs.map(p=>`<option value="${p.email}">${p.nombre}</option>`).join(""):`<option value="">(Sin profesores)</option>`;
     div.innerHTML=`${ev.nombre} ${ev.ini}-${ev.fin}
       <select id="profSel${i}">${options}</select>
-      <button onclick="responder('${ev.nombre}',${i},'Sí')">✅ Sí</button>
-      <button onclick="responder('${ev.nombre}',${i},'No')">❌ No</button>`;
+      <button onclick="responder('${ev.nombre}','Sí',${i})">✅ Sí</button>
+      <button onclick="responder('${ev.nombre}','No',${i})">❌ No</button>`;
     c.firstElementChild.appendChild(div);
   });
 }
-async function responder(nombreEv,i,r){
+
+async function responder(evNombre, resp, i){
   const eventos=await fetchAPI('/eventos');
-  const ev=eventos.find(e=>e.nombre===nombreEv);
-  ev.asistencias=(ev.asistencias||[]).filter(a=>a.user!==currentUser.user);
+  const ev=eventos.find(e=>e.nombre===evNombre);
+  if(!ev) return;
   const sel=document.getElementById("profSel"+i);
-  const profEmail=sel?sel.value:"";
-  ev.asistencias.push({user:currentUser.user,nombre:currentUser.nombre,clase:currentUser.clase,resp:r,profEmail});
-  await fetchAPI(`/eventos/${ev.nombre}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(ev)});
+  const profEmail=sel? sel.value : "";
+  ev.asistencias=(ev.asistencias||[]).filter(a=>a.user!==currentUser.user);
+  ev.asistencias.push({user:currentUser.user,nombre:currentUser.nombre,clase:currentUser.clase,resp,profEmail});
+  await fetchAPI(`/eventos/${evNombre}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({asistencias:ev.asistencias})});
   alert("Respuesta guardada");
   panelEventosUsuario();
   renderEventosLateral();
 }
 
-/* ==================== PANEL CHAT ==================== */
+// ==================== CHAT USUARIO ====================
 async function panelChatUsuario(){
   const c=document.getElementById("panelArea");
   const msgs=await fetchAPI(`/chat/${currentUser.user}`) || [];
-  c.innerHTML=`
-    <div class="panel">
-      <h3>Chat con Admin</h3>
-      <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
-      <form id="formChat">
-        <input type="text" id="msgTxt" placeholder="Mensaje">
-        <button type="submit">Enviar</button>
-      </form>
-    </div>`;
+  c.innerHTML=`<div class="panel">
+    <h3>Chat con Admin</h3>
+    <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
+    <form id="formChat"><input type="text" id="msgTxt" placeholder="Mensaje"><button type="submit">Enviar</button></form>
+  </div>`;
   const msgsDiv=c.querySelector("#msgs");
   msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
   c.querySelector("#formChat").onsubmit=async e=>{
     e.preventDefault();
     const arr=await fetchAPI(`/chat/${currentUser.user}`) || [];
-    arr.push((currentUser.user||"usuario")+": "+c.querySelector("#msgTxt").value);
-    await fetchAPI(`/chat/${currentUser.user}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+    arr.push(currentUser.user+": "+c.querySelector("#msgTxt").value);
+    await fetchAPI(`/chat/${currentUser.user}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
     panelChatUsuario();
   };
 }
 
+// ==================== CHAT ADMIN ====================
 async function panelChatAdmin(){
   const c=document.getElementById("panelArea");
   const usuarios=await fetchAPI('/usuarios');
@@ -345,31 +339,27 @@ async function panelChatAdmin(){
 async function abrirChatAdmin(user){
   const c=document.getElementById("panelArea");
   const msgs=await fetchAPI(`/chat/${user}`) || [];
-  c.innerHTML=`
-    <div class="panel">
-      <h3>Chat con ${user}</h3>
-      <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
-      <form id="formChat">
-        <input type="text" id="msgTxt" placeholder="Mensaje">
-        <button type="submit">Enviar</button>
-      </form>
-    </div>`;
+  c.innerHTML=`<div class="panel">
+    <h3>Chat con ${user}</h3>
+    <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
+    <form id="formChat"><input type="text" id="msgTxt" placeholder="Mensaje"><button type="submit">Enviar</button></form>
+  </div>`;
   const msgsDiv=c.querySelector("#msgs");
   msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
   c.querySelector("#formChat").onsubmit=async e=>{
     e.preventDefault();
     const arr=await fetchAPI(`/chat/${user}`) || [];
     arr.push("Admin: "+c.querySelector("#msgTxt").value);
-    await fetchAPI(`/chat/${user}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
+    await fetchAPI(`/chat/${user}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
     abrirChatAdmin(user);
   };
 }
 
-/* ==================== AUTORIZACIONES ==================== */
+// ==================== AUTORIZACIONES ====================
 async function panelAutorizaciones(){
   const c=document.getElementById("panelArea");
   const eventos=await fetchAPI('/eventos');
-  c.innerHTML=`<div class="panel"><h3>Autorizaciones pendientes</h3></div>`;
+  c.innerHTML="<div class='panel'><h3>Autorizaciones pendientes</h3></div>";
   const panel=c.querySelector(".panel");
   eventos.forEach(ev=>{
     if(ev.asistencias && ev.asistencias.length>0){
@@ -383,7 +373,7 @@ async function panelAutorizaciones(){
 }
 
 function enviarAutorizacion(nombre,clase,ini,fin,profMail){
-  emailjs.send("service_eb2pt87","template_0z24xrk",{ to_email: profMail, nombre, clase, ini, fin })
+  emailjs.send("service_eb2pt87","template_0z24xrk",{ to_email:profMail, nombre, clase, ini, fin })
     .then(()=>alert("✅ Autorización enviada a "+profMail))
     .catch(err=>alert("❌ Error: "+JSON.stringify(err)));
 }
