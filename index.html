@@ -7,34 +7,36 @@
 
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script>
-  (function(){ emailjs.init("nXxJ4Ujpxo56o0BUT"); })();
+  (function(){
+    emailjs.init("nXxJ4Ujpxo56o0BUT"); // Public Key
+  })();
 </script>
 
 <style>
-body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; background: linear-gradient(135deg, red, yellow, orange); }
-header { display: flex; justify-content: space-between; padding: 15px 25px; font-weight: bold; color: black; font-size: 20px; background: rgba(255,255,255,0.7); }
-.login-container { height: calc(100% - 60px); display: flex; justify-content: center; align-items: center; }
-.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); width: 320px; max-width: 90%; }
-.card input, .card button, select { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; }
-.card button { background: black; color: white; cursor: pointer; }
-.hidden { display: none; }
-.app { padding: 20px; display: flex; flex-wrap: wrap; }
-#left { flex: 1; min-width: 250px; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 10px; margin-right: 20px; }
-#right { flex: 2; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
-.btn { padding: 20px; margin: 10px; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; width: 80%; background: black; color: white; }
-.btn:hover { background: #333; }
-.panel { margin-top: 20px; background: white; padding: 15px; border-radius: 10px; width: 90%; }
-.list-item { border-bottom: 1px solid #ccc; padding: 5px; display: flex; justify-content: space-between; flex-wrap: wrap; }
-@media (max-width: 768px) { .app { flex-direction: column; } #left { margin-right: 0; margin-bottom: 20px; } }
+body, html { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; background: linear-gradient(135deg, red, yellow, orange);}
+header {display:flex; justify-content: space-between; padding:15px 25px; font-weight:bold; color:black; font-size:20px; background: rgba(255,255,255,0.7);}
+.login-container {height: calc(100% - 60px); display:flex; justify-content:center; align-items:center;}
+.card {background:white; padding:20px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.3); width:320px; max-width:90%;}
+.card input, .card button, select {width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
+.card button {background:black; color:white; cursor:pointer;}
+.hidden {display:none;}
+.app {padding:20px; display:flex; flex-wrap:wrap;}
+#left {flex:1; min-width:250px; background: rgba(255,255,255,0.8); padding:15px; border-radius:10px; margin-right:20px;}
+#right {flex:2; min-width:300px; display:flex; flex-direction: column; align-items:center;}
+.btn {padding:20px; margin:10px; border:none; border-radius:10px; cursor:pointer; font-size:18px; width:80%; background:black; color:white;}
+.btn:hover {background:#333;}
+.panel {margin-top:20px; background:white; padding:15px; border-radius:10px; width:90%;}
+.list-item {border-bottom:1px solid #ccc; padding:5px; display:flex; justify-content:space-between; flex-wrap:wrap;}
+@media (max-width:768px) {.app {flex-direction:column;} #left {margin-right:0; margin-bottom:20px;}}
 </style>
 </head>
 <body>
-
 <header>
   <div>Voluntariado</div>
   <div>Alumnos Solidarios</div>
 </header>
 
+<!-- LOGIN -->
 <div id="login" class="login-container">
   <div class="card">
     <h2>Iniciar Sesión</h2>
@@ -46,6 +48,7 @@ header { display: flex; justify-content: space-between; padding: 15px 25px; font
   </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="hidden">
   <h2 id="welcome" style="margin-left:20px;"></h2>
   <div class="app">
@@ -54,18 +57,20 @@ header { display: flex; justify-content: space-between; padding: 15px 25px; font
       <div id="listaEventosLateral"></div>
     </div>
     <div id="right">
+      <!-- Botones Admin -->
       <div id="adminButtons" class="hidden">
         <button class="btn" onclick="panelUsuarios()">Usuarios</button>
         <button class="btn" onclick="panelProfesores()">Profesores</button>
         <button class="btn" onclick="panelEventos()">Eventos</button>
         <button class="btn" onclick="panelChatAdmin()">Chat</button>
         <button class="btn" onclick="panelAutorizaciones()">Autorizaciones</button>
-        <button class="btn" onclick="panelCambioPass()">Cambiar Contraseña</button>
+        <button class="btn" onclick="panelCambiarContrasena()">Cambiar contraseña</button>
       </div>
+      <!-- Botones Usuario -->
       <div id="userButtons" class="hidden">
         <button class="btn" onclick="panelEventosUsuario()">Próximos eventos</button>
         <button class="btn" onclick="panelChatUsuario()">Chat con Admin</button>
-        <button class="btn" onclick="panelCambioPass()">Cambiar Contraseña</button>
+        <button class="btn" onclick="panelCambiarContrasena()">Cambiar contraseña</button>
       </div>
       <div id="panelArea"></div>
       <button onclick="logout()" class="btn" style="background:red;margin-top:20px;">Cerrar sesión</button>
@@ -74,310 +79,216 @@ header { display: flex; justify-content: space-between; padding: 15px 25px; font
 </div>
 
 <script>
-const API_URL="http://localhost:3000"; // Cambiar si host diferente
-let currentUser=null;
-const ADMIN_USERS=["admin1","admin2"];
-const ADMIN_PASS_DEFAULT="Solidarios25";
-
-// ==================== FUNCIONES UTILES ====================
-async function fetchAPI(path, options){ 
-  const res=await fetch(API_URL+path, options);
-  if(res.status!==204) return res.json(); else return null;
-}
-
-function logout(){ location.reload(); }
+const API_URL = "http://localhost:3000"; // Cambia a la URL de tu backend
+const ADMINS = ["admin1","admin2"];
+let currentUser = null;
 
 // ==================== LOGIN ====================
 document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  const u=document.getElementById("loginUser").value.trim();
-  const p=document.getElementById("loginPass").value.trim();
-  if(ADMIN_USERS.includes(u) && p===ADMIN_PASS_DEFAULT){
-    currentUser={username:u,role:"Admin"};
-    startApp();
-    return;
+  const u = document.getElementById("loginUser").value.trim();
+  const p = document.getElementById("loginPass").value.trim();
+  if(ADMINS.includes(u)){
+    // Login Admin: verifica contraseña via backend
+    const res = await fetch(`${API_URL}/admin/login`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({user:u, pass:p})
+    });
+    if(res.ok){currentUser={username:u, role:"Admin"}; startApp();}
+    else alert("Usuario o contraseña incorrectos");
+  } else {
+    // Login usuario normal
+    const res = await fetch(`${API_URL}/login`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({user:u, pass:p})
+    });
+    if(res.ok){
+      currentUser = await res.json();
+      currentUser.role = "User";
+      startApp();
+    } else alert("Usuario o contraseña incorrectos");
   }
-  const usuarios=await fetchAPI('/usuarios');
-  const user=usuarios.find(x=>x.user===u && x.pass===p);
-  if(user){ currentUser={...user, role:"User"}; startApp(); }
-  else alert("Usuario o contraseña incorrectos");
 });
 
 function startApp(){
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  const displayName=currentUser.role==="Admin"?currentUser.username:(currentUser.nombre||currentUser.user);
-  document.getElementById("welcome").innerText="Bienvenido, "+displayName;
+  const displayName = currentUser.role==="Admin"?currentUser.username:(currentUser.nombre||currentUser.user);
+  document.getElementById("welcome").innerText = "Bienvenido, "+displayName;
   document.getElementById("adminButtons").classList.toggle("hidden", currentUser.role!=="Admin");
   document.getElementById("userButtons").classList.toggle("hidden", currentUser.role==="Admin");
   renderEventosLateral();
-  document.getElementById("panelArea").innerHTML="";
+  document.getElementById("panelArea").innerHTML = "";
 }
 
-// ==================== PANEL CAMBIAR CONTRASEÑA ====================
-function panelCambioPass(){
-  const c=document.getElementById("panelArea");
-  c.innerHTML=`
-    <div class="panel">
-      <h3>Cambiar Contraseña</h3>
-      <form id="formPass">
-        <input type="password" id="oldPass" placeholder="Contraseña actual" required>
-        <input type="password" id="newPass" placeholder="Nueva contraseña" required>
-        <input type="password" id="newPass2" placeholder="Confirmar nueva contraseña" required>
-        <button type="submit">Actualizar</button>
-      </form>
-    </div>
-  `;
-  document.getElementById("formPass").onsubmit=async e=>{
-    e.preventDefault();
-    const oldP=document.getElementById("oldPass").value;
-    const newP=document.getElementById("newPass").value;
-    const newP2=document.getElementById("newPass2").value;
-    if(newP!==newP2){ alert("Las nuevas contraseñas no coinciden"); return; }
-    if(currentUser.role==="Admin"){
-      if(oldP!==ADMIN_PASS_DEFAULT){ alert("Contraseña actual incorrecta"); return; }
-      alert("✅ Contraseña de admin cambiada (reinicie la app para persistir)");
-    } else {
-      await fetchAPI(`/usuarios/${currentUser.user}`, {
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({pass:newP})
-      });
-      alert("✅ Contraseña actualizada");
-    }
-  };
+function logout(){location.reload();}
+
+// ==================== FUNCIONES DE FETCH ====================
+async function fetchAPI(endpoint, options={}){
+  const res = await fetch(`${API_URL}${endpoint}`, options);
+  if(res.ok) return await res.json();
+  else return [];
+}
+
+// ==================== RENDER LATERAL ====================
+async function renderEventosLateral(){
+  const eventos = await fetchAPI("/eventos");
+  const cont = document.getElementById("listaEventosLateral");
+  cont.innerHTML = "";
+  eventos.forEach(ev=>{
+    const div = document.createElement("div");
+    div.textContent = `${ev.nombre} (${ev.ini}-${ev.fin})`;
+    cont.appendChild(div);
+  });
 }
 
 // ==================== PANEL USUARIOS ====================
 async function panelUsuarios(){
-  const c=document.getElementById("panelArea");
-  const usuarios=await fetchAPI('/usuarios');
-  c.innerHTML=`
-    <div class="panel">
-      <h3>Gestionar Usuarios</h3>
-      <form id="formUser">
-        <input type="text" id="newUser" placeholder="Usuario" required>
-        <input type="password" id="newPass" placeholder="Contraseña" required>
-        <input type="text" id="nombre" placeholder="Nombre completo" required>
-        <select id="clase">${["1ºESO","2ºESO","3ºESO","4ºESO"].map(curso=>Array.from({length:curso==="4ºESO"?4:5},(_,i)=>`${curso} ${String.fromCharCode(65+i)}`).map(op=>`<option>${op}</option>`).join("")).join("")}</select>
-        <button type="submit">Agregar</button>
-      </form>
-      <h4>Usuarios existentes</h4>
-      <div id="listaUsuarios"></div>
-    </div>
-  `;
-  document.getElementById("formUser").onsubmit=async e=>{
+  const c = document.getElementById("panelArea");
+  const usuarios = await fetchAPI("/usuarios");
+  c.innerHTML = `<div class="panel">
+    <h3>Gestionar Usuarios</h3>
+    <form id="formUser">
+      <input type="text" id="newUser" placeholder="Usuario" required>
+      <input type="password" id="newPass" placeholder="Contraseña" required>
+      <input type="text" id="nombre" placeholder="Nombre completo" required>
+      <select id="clase">${["1ºESO","2ºESO","3ºESO","4ºESO"].map(curso=>Array.from({length:curso==="4ºESO"?4:5},(_,i)=>`${curso} ${String.fromCharCode(65+i)}`).map(op=>`<option>${op}</option>`).join("")).join("")}</select>
+      <button type="submit">Agregar</button>
+    </form>
+    <div id="listaUsuarios"></div>
+  </div>`;
+
+  document.getElementById("formUser").onsubmit = async e=>{
     e.preventDefault();
-    const form=e.target;
-    await fetchAPI('/usuarios', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({user:form.newUser.value, pass:form.newPass.value, nombre:form.nombre.value, clase:form.clase.value})
+    await fetch(`${API_URL}/usuarios`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        user:e.target.newUser.value,
+        pass:e.target.newPass.value,
+        nombre:e.target.nombre.value,
+        clase:e.target.clase.value
+      })
     });
     panelUsuarios();
   };
-  const lista=document.getElementById("listaUsuarios");
+
+  const lista = document.getElementById("listaUsuarios");
   usuarios.forEach(u=>{
-    let div=document.createElement("div");
+    const div = document.createElement("div");
     div.className="list-item";
-    div.innerHTML=`${u.nombre} (${u.user}, ${u.clase}) <button onclick="delUsuario('${u.user}')">❌</button>`;
+    div.innerHTML=`${u.nombre} (${u.user}, ${u.clase}) <button onclick="eliminarUsuario('${u.user}')">❌</button>`;
     lista.appendChild(div);
   });
 }
-async function delUsuario(user){ await fetchAPI(`/usuarios/${user}`,{method:'DELETE'}); panelUsuarios(); }
 
-// ==================== PROFESORES ====================
+async function eliminarUsuario(user){
+  await fetch(`${API_URL}/usuarios/${user}`,{method:"DELETE"});
+  panelUsuarios();
+}
+
+// ==================== PANEL PROFESORES ====================
 async function panelProfesores(){
-  const c=document.getElementById("panelArea");
-  const profs=await fetchAPI('/profesores');
-  c.innerHTML=`
-    <div class="panel">
-      <h3>Gestionar Profesores</h3>
-      <form id="formProf">
-        <input type="text" id="profName" placeholder="Nombre Profesor" required>
-        <input type="email" id="profMail" placeholder="Correo Profesor" required>
-        <button type="submit">Agregar</button>
-      </form>
-      <h4>Profesores registrados</h4>
-      <div id="listaProfs"></div>
-    </div>
-  `;
+  const c = document.getElementById("panelArea");
+  const profs = await fetchAPI("/profesores");
+  c.innerHTML=`<div class="panel">
+    <h3>Gestionar Profesores</h3>
+    <form id="formProf">
+      <input type="text" id="profName" placeholder="Nombre Profesor" required>
+      <input type="email" id="profMail" placeholder="Correo Profesor" required>
+      <button type="submit">Agregar</button>
+    </form>
+    <div id="listaProfs"></div>
+  </div>`;
   document.getElementById("formProf").onsubmit=async e=>{
     e.preventDefault();
-    const form=e.target;
-    await fetchAPI('/profesores', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({nombre:form.profName.value,email:form.profMail.value})
+    await fetch(`${API_URL}/profesores`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({nombre:e.target.profName.value,email:e.target.profMail.value})
     });
     panelProfesores();
   };
   const lista=document.getElementById("listaProfs");
   profs.forEach(p=>{
-    let div=document.createElement("div");
+    const div=document.createElement("div");
     div.className="list-item";
-    div.innerHTML=`${p.nombre} (${p.email}) <button onclick="delProf('${p.email}')">❌</button>`;
+    div.innerHTML=`${p.nombre} (${p.email}) <button onclick="eliminarProfesor('${p.email}')">❌</button>`;
     lista.appendChild(div);
   });
 }
-async function delProf(email){ await fetchAPI(`/profesores/${email}`,{method:'DELETE'}); panelProfesores(); }
 
-// ==================== EVENTOS ====================
+async function eliminarProfesor(email){
+  await fetch(`${API_URL}/profesores/${email}`,{method:"DELETE"});
+  panelProfesores();
+}
+
+// ==================== PANEL EVENTOS ====================
 async function panelEventos(){
   const c=document.getElementById("panelArea");
-  const eventos=await fetchAPI('/eventos');
-  c.innerHTML=`
-    <div class="panel">
-      <h3>Gestionar Eventos</h3>
-      <form id="formEvento">
-        <input type="text" id="evName" placeholder="Nombre evento" required>
-        <input type="time" id="evIni" required> a <input type="time" id="evFin" required>
-        <button type="submit">Agregar</button>
-      </form>
-      <h4>Eventos existentes</h4>
-      <div id="listaEventos"></div>
-    </div>
-  `;
+  const eventos = await fetchAPI("/eventos");
+  c.innerHTML=`<div class="panel">
+    <h3>Gestionar Eventos</h3>
+    <form id="formEvento">
+      <input type="text" id="evName" placeholder="Nombre evento" required>
+      <input type="time" id="evIni" required> a <input type="time" id="evFin" required>
+      <button type="submit">Agregar</button>
+    </form>
+    <div id="listaEventos"></div>
+  </div>`;
   document.getElementById("formEvento").onsubmit=async e=>{
     e.preventDefault();
-    const form=e.target;
-    await fetchAPI('/eventos', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({nombre:form.evName.value, ini:form.evIni.value, fin:form.evFin.value, asistencias:[]})
+    await fetch(`${API_URL}/eventos`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({nombre:e.target.evName.value,ini:e.target.evIni.value,fin:e.target.evFin.value,asistencias:[]})
     });
     panelEventos();
     renderEventosLateral();
   };
   const lista=document.getElementById("listaEventos");
-  eventos.forEach(ev=>{
-    let div=document.createElement("div");
+  eventos.forEach((ev)=>{
+    const div=document.createElement("div");
     div.className="list-item";
-    const alumnos=(ev.asistencias||[]).map(a=>`${a.nombre} (${a.clase}) → ${a.resp}`).join("<br>");
-    div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos||"Sin respuestas"} <button onclick="delEvento('${ev.nombre}')">❌</button>`;
+    div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin} <button onclick="eliminarEvento('${ev.nombre}')">❌</button>`;
     lista.appendChild(div);
   });
 }
-async function delEvento(nombre){ await fetchAPI(`/eventos/${nombre}`,{method:'DELETE'}); panelEventos(); renderEventosLateral(); }
 
-async function renderEventosLateral(){
-  const eventos=await fetchAPI('/eventos');
-  const cont=document.getElementById("listaEventosLateral");
-  cont.innerHTML="";
-  eventos.forEach(ev=>{
-    let div=document.createElement("div");
-    div.textContent=`${ev.nombre} (${ev.ini}-${ev.fin})`;
-    cont.appendChild(div);
-  });
-}
-
-// ==================== EVENTOS USUARIO ====================
-async function panelEventosUsuario(){
-  const c=document.getElementById("panelArea");
-  const eventos=await fetchAPI('/eventos');
-  const profs=await fetchAPI('/profesores');
-  c.innerHTML="<div class='panel'><h3>Próximos eventos</h3></div>";
-  eventos.forEach((ev,i)=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    let options=profs.length? profs.map(p=>`<option value="${p.email}">${p.nombre}</option>`).join(""):`<option value="">(Sin profesores)</option>`;
-    div.innerHTML=`${ev.nombre} ${ev.ini}-${ev.fin}
-      <select id="profSel${i}">${options}</select>
-      <button onclick="responder('${ev.nombre}','Sí',${i})">✅ Sí</button>
-      <button onclick="responder('${ev.nombre}','No',${i})">❌ No</button>`;
-    c.firstElementChild.appendChild(div);
-  });
-}
-
-async function responder(evNombre, resp, i){
-  const eventos=await fetchAPI('/eventos');
-  const ev=eventos.find(e=>e.nombre===evNombre);
-  if(!ev) return;
-  const sel=document.getElementById("profSel"+i);
-  const profEmail=sel? sel.value : "";
-  ev.asistencias=(ev.asistencias||[]).filter(a=>a.user!==currentUser.user);
-  ev.asistencias.push({user:currentUser.user,nombre:currentUser.nombre,clase:currentUser.clase,resp,profEmail});
-  await fetchAPI(`/eventos/${evNombre}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({asistencias:ev.asistencias})});
-  alert("Respuesta guardada");
-  panelEventosUsuario();
+async function eliminarEvento(nombre){
+  await fetch(`${API_URL}/eventos/${nombre}`,{method:"DELETE"});
+  panelEventos();
   renderEventosLateral();
 }
 
-// ==================== CHAT USUARIO ====================
-async function panelChatUsuario(){
-  const c=document.getElementById("panelArea");
-  const msgs=await fetchAPI(`/chat/${currentUser.user}`) || [];
+// ==================== CAMBIAR CONTRASEÑA ====================
+async function panelCambiarContrasena(){
+  const c = document.getElementById("panelArea");
   c.innerHTML=`<div class="panel">
-    <h3>Chat con Admin</h3>
-    <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
-    <form id="formChat"><input type="text" id="msgTxt" placeholder="Mensaje"><button type="submit">Enviar</button></form>
+    <h3>Cambiar Contraseña</h3>
+    <form id="formPass">
+      <input type="password" id="oldPass" placeholder="Contraseña actual" required>
+      <input type="password" id="newPass1" placeholder="Nueva contraseña" required>
+      <input type="password" id="newPass2" placeholder="Repetir nueva contraseña" required>
+      <button type="submit">Cambiar</button>
+    </form>
   </div>`;
-  const msgsDiv=c.querySelector("#msgs");
-  msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
-  c.querySelector("#formChat").onsubmit=async e=>{
+  document.getElementById("formPass").onsubmit=async e=>{
     e.preventDefault();
-    const arr=await fetchAPI(`/chat/${currentUser.user}`) || [];
-    arr.push(currentUser.user+": "+c.querySelector("#msgTxt").value);
-    await fetchAPI(`/chat/${currentUser.user}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
-    panelChatUsuario();
-  };
-}
-
-// ==================== CHAT ADMIN ====================
-async function panelChatAdmin(){
-  const c=document.getElementById("panelArea");
-  const usuarios=await fetchAPI('/usuarios');
-  c.innerHTML="<div class='panel'><h3>Chats de usuarios</h3></div>";
-  usuarios.forEach(u=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    div.innerHTML=`${u.nombre} (${u.user}) <button onclick="abrirChatAdmin('${u.user}')">Abrir chat</button>`;
-    c.firstElementChild.appendChild(div);
-  });
-}
-
-async function abrirChatAdmin(user){
-  const c=document.getElementById("panelArea");
-  const msgs=await fetchAPI(`/chat/${user}`) || [];
-  c.innerHTML=`<div class="panel">
-    <h3>Chat con ${user}</h3>
-    <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
-    <form id="formChat"><input type="text" id="msgTxt" placeholder="Mensaje"><button type="submit">Enviar</button></form>
-  </div>`;
-  const msgsDiv=c.querySelector("#msgs");
-  msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
-  c.querySelector("#formChat").onsubmit=async e=>{
-    e.preventDefault();
-    const arr=await fetchAPI(`/chat/${user}`) || [];
-    arr.push("Admin: "+c.querySelector("#msgTxt").value);
-    await fetchAPI(`/chat/${user}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(arr)});
-    abrirChatAdmin(user);
-  };
-}
-
-// ==================== AUTORIZACIONES ====================
-async function panelAutorizaciones(){
-  const c=document.getElementById("panelArea");
-  const eventos=await fetchAPI('/eventos');
-  c.innerHTML="<div class='panel'><h3>Autorizaciones pendientes</h3></div>";
-  const panel=c.querySelector(".panel");
-  eventos.forEach(ev=>{
-    if(ev.asistencias && ev.asistencias.length>0){
-      let div=document.createElement("div");
-      div.className="list-item";
-      let alumnos=ev.asistencias.map(a=>`${a.nombre} (${a.clase}) → ${a.resp} ${a.resp==="Sí"?`<button onclick="enviarAutorizacion('${a.nombre}','${a.clase}','${ev.ini}','${ev.fin}','${a.profEmail}')">✉️ Autorizar</button>`:""}`).join("<br>");
-      div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos}`;
-      panel.appendChild(div);
-    }
-  });
-}
-
-function enviarAutorizacion(nombre,clase,ini,fin,profMail){
-  emailjs.send("service_eb2pt87","template_0z24xrk",{ to_email:profMail, nombre, clase, ini, fin })
-    .then(()=>alert("✅ Autorización enviada a "+profMail))
-    .catch(err=>alert("❌ Error: "+JSON.stringify(err)));
+    const oldP = e.target.oldPass.value;
+    const new1 = e.target.newPass1.value;
+    const new2 = e.target.newPass2.value;
+    if(new1!==new2){alert("Las contraseñas no coinciden"); return;}
+    const res = await fetch(`${API_URL}/usuarios/${currentUser.user}/pass`,{
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({oldPass:oldP,newPass:new1})
+    });
+    if(res.ok) alert("Contraseña cambiada"); else alert("Error al cambiar contraseña");
+  }
 }
 </script>
-
 </body>
 </html>
