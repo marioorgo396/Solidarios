@@ -1,381 +1,484 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alumnos Solidarios</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Alumnos Solidarios — Admin</title>
 
 <!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 <script>
-(function(){
-  emailjs.init("nXxJ4Ujpxo56o0BUT"); // Public Key
-})();
+  (function(){
+    emailjs.init("nXxJ4Ujpxo56o0BUT"); // Public Key (igual que antes)
+  })();
 </script>
 
 <style>
-body, html {margin:0; padding:0; height:100%; font-family:Arial,sans-serif; background:linear-gradient(135deg, red, yellow, orange);}
-header {display:flex; justify-content:space-between; padding:15px 25px; font-weight:bold; color:black; font-size:20px; background:rgba(255,255,255,0.7);}
-.login-container {height:calc(100% - 60px); display:flex; justify-content:center; align-items:center;}
-.card {background:white; padding:20px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.3); width:320px; max-width:90%;}
-.card input, .card button, select {width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
-.card button {background:black; color:white; cursor:pointer;}
-.hidden {display:none;}
-.app {padding:20px; display:flex; flex-wrap:wrap;}
-#left {flex:1; min-width:250px; background:rgba(255,255,255,0.8); padding:15px; border-radius:10px; margin-right:20px;}
-#right {flex:2; min-width:300px; display:flex; flex-direction:column; align-items:center;}
-.btn {padding:20px; margin:10px; border:none; border-radius:10px; cursor:pointer; font-size:18px; width:80%; background:black; color:white;}
-.btn:hover {background:#333;}
-.panel {margin-top:20px; background:white; padding:15px; border-radius:10px; width:90%;}
-.list-item {border-bottom:1px solid #ccc; padding:5px; display:flex; justify-content:space-between; flex-wrap:wrap;}
-@media (max-width:768px){.app{flex-direction:column;} #left{margin-right:0; margin-bottom:20px;}}
+  body, html { margin:0; padding:0; height:100%; font-family:Arial,sans-serif; background:linear-gradient(135deg, red, yellow, orange); }
+  header { display:flex; justify-content:space-between; padding:15px 25px; font-weight:bold; color:black; font-size:20px; background:rgba(255,255,255,0.8); }
+  .login-container { height:calc(100% - 60px); display:flex; justify-content:center; align-items:center; }
+  .card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.3); width:360px; max-width:95%; }
+  .card input, .card button, select, textarea { width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
+  .card button { background:black; color:white; cursor:pointer; border:none; }
+  .hidden { display:none; }
+  .app { padding:20px; display:flex; flex-wrap:wrap; }
+  #left { flex:1; min-width:260px; background:rgba(255,255,255,0.9); padding:15px; border-radius:10px; margin-right:20px; }
+  #right { flex:2; min-width:340px; display:flex; flex-direction:column; align-items:center; }
+  .btn { padding:14px; margin:8px; border:none; border-radius:10px; cursor:pointer; font-size:16px; width:85%; background:black; color:white; }
+  .btn:hover { background:#333; }
+  .panel { margin-top:20px; background:white; padding:15px; border-radius:10px; width:95%; box-sizing:border-box; }
+  .list-item { border-bottom:1px solid #ccc; padding:8px; display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center; }
+  .muted { color:#666; font-size:14px; }
+  @media (max-width:768px){ .app{ flex-direction:column; } #left{ margin-right:0; margin-bottom:20px; } }
+  .small { font-size:13px; padding:6px 8px; }
+  .checkbox-grid { display:grid; gap:6px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
 </style>
 </head>
 <body>
 <header>
   <div>Voluntariado</div>
-  <div>Alumnos Solidarios</div>
+  <div>Alumnos Solidarios — Admin</div>
 </header>
 
+<!-- LOGIN -->
 <div id="login" class="login-container">
   <div class="card">
-    <h2>Iniciar Sesión</h2>
+    <h2>Iniciar Sesión (Admin)</h2>
     <form id="loginForm">
-      <input type="text" id="loginUser" placeholder="Usuario" required>
-      <input type="password" id="loginPass" placeholder="Contraseña" required>
+      <input type="text" id="loginUser" placeholder="Usuario (admin1 / admin2)" required />
+      <input type="password" id="loginPass" placeholder="Contraseña" required />
       <button type="submit">Entrar</button>
     </form>
+    <p class="muted">Usuarios admin: <b>admin1</b>, <b>admin2</b>. Contraseña: <b>Solidarios25</b></p>
   </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="hidden">
   <h2 id="welcome" style="margin-left:20px;"></h2>
   <div class="app">
     <div id="left">
       <h3>Próximos Eventos</h3>
-      <div id="listaEventosLateral"></div>
+      <div id="listaEventosLateral" class="muted"></div>
+      <div class="panel" style="margin-top:12px;">
+        <h3>Profesores (panel)</h3>
+        <div id="panelProfesoresContainer"></div>
+        <hr>
+        <h4>Añadir profesor</h4>
+        <form id="formAddProfesor">
+          <input type="text" id="profName" placeholder="Nombre profesor" required />
+          <input type="email" id="profEmail" placeholder="Correo profesor" required />
+          <button type="submit" class="small">Agregar profesor</button>
+        </form>
+      </div>
     </div>
+
     <div id="right">
-      <div id="adminButtons" class="hidden">
-        <button class="btn" onclick="panelUsuarios()">Usuarios</button>
-        <button class="btn" onclick="panelProfesores()">Profesores</button>
+      <div id="adminButtons">
         <button class="btn" onclick="panelEventos()">Eventos</button>
-        <button class="btn" onclick="panelChatAdmin()">Chat</button>
+        <button class="btn" onclick="panelProfesores()">Profesores</button>
         <button class="btn" onclick="panelAutorizaciones()">Autorizaciones</button>
       </div>
-      <div id="userButtons" class="hidden">
-        <button class="btn" onclick="panelEventosUsuario()">Próximos eventos</button>
-        <button class="btn" onclick="panelChatUsuario()">Chat con Admin</button>
-      </div>
-      <div id="panelArea"></div>
+
+      <div id="panelArea" style="width:100%;"></div>
+
       <button onclick="logout()" class="btn" style="background:red;margin-top:20px;">Cerrar sesión</button>
     </div>
   </div>
 </div>
 
 <script>
-const ADMINS=["admin1","admin2"];
-const ADMIN_PASS="Solidarios25";
-let currentUser=null;
-const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwhLwPiRtBgFpJR01Cgf4sDcBR1ggmO6zNmp0i5ZkDXBcp2p6PpK2b_wRKYkcI1uGia/exec";
+/* ------------------------------------------------------------
+   CONFIGURACIÓN EDITABLE — aquí puedes pegar/editar listas:
+   ------------------------------------------------------------ */
 
-// --- Funciones de Google Sheets ---
-async function load(k){
-  try{
-    let res = await fetch(`${SCRIPT_URL}?action=load&key=${encodeURIComponent(k)}`);
-    let data = await res.json();
-    return data || [];
-  }catch(e){console.error("Error cargando datos:", e); return [];}
+// 🔧 EDITA AQUÍ: Lista de alumnos (fácil de editar)
+const ALUMNOS = [
+"JUAN ALCAIDE ORTEGA",
+"IGNACIO ALONSO FERNÁNDEZ",
+"ANA APARICIO DE DIEGO",
+"BLANCA ARÍAS LOMAS",
+"NOA ASENSIO LEGIDO",
+"ISABELLA BENTO RUIZ",
+"EMMA BERMÚDEZ LÓPEZ",
+"cyan blaise velasquez",
+"Asier Bocardo Melguizo",
+"SOFÍA BRAVO TEJERO",
+"MAR SARAY CÁCERES FLORES",
+"ARIADNE CALDERÓN PÉREZ",
+"DANIELA CAÑETE LÓPEZ",
+"MARÍA COBOS BENEDICTO",
+"IVAN CORREIA NARROS",
+"ALEJANDRO DE BLAS LÓPEZ-EGEA",
+"ADRIÁN DELGADO GONZALEZ",
+"PABLO DUY DÍAZ SANTÍN",
+"SOFÍA DÍAZ-PACHE ROJAS",
+"VEGA EGEA ARO",
+"SARA FERNÁNDEZ BUITRAGO",
+"RUTH FERNÁNDEZ GONZALO",
+"César Fernández Zarco",
+"MARCOS GARCÍA BARTOLOMÉ",
+"BLANCA GARCÍA ESTEBAN",
+"DANIELA GARCÍA GÓMEZ",
+"Hugo García González",
+"VÍCTOR GARCÍA RAMÍREZ",
+"MARÍA GÓMEZ CARMONA",
+"MÓNICA GUTIÉRREZ ROMÁN",
+"MARÍA HERRÁEZ MARTÍNEZ",
+"EMMA HERRERO BENITO",
+"EMMA HUERTAS LÓPEZ",
+"SARA LEONARDO GARCÍA",
+"Aini Li",
+"Dimas López",
+"ELENA MARTÍNEZ BAÑÓN",
+"NOA MARTÍNEZ HURTADO",
+"DANIEL ORTE GÓMEZ",
+"GUILLERMO PALACIOS ASPIAZU (guiso)",
+"LUCÍA PÉREZ GALIANA",
+"MARCELA RAMOS GUDÍN",
+"LIA RODRÍGUEZ SIERRA",
+"ANDRÉS ROMERO OCHOA",
+"CLAUDIA JING XIAN RUAN",
+"Isabela RUBIO PARRA",
+"DOMENIKOS SALAZAR BALLI",
+"PRITHIKA THIRUNAVUKKARASU",
+"SOFÍA TORRES FERNÁNDEZ",
+"ERIKA VÁZQUEZ SÁNCHEZ",
+"CLAUDIA VERA CANTALAPIEDRA",
+"CARLA VIVAR DEL CASTILLO",
+"LUCAS WILT ESCRIBANO",
+"Angela Xia",
+"MINGHAO XU",
+"WAN YUE YANG",
+"YINGZHAO ZHOU"
+];
+
+// 🔧 EDITA AQUÍ: Lista inicial de profesores (nombre y email). También editable desde el panel.
+const INITIAL_PROFESORES = [
+  { nombre: "Juan José", email: "juanjose@iepgroup.es" },
+  { nombre: "Susana de Diego", email: "susana.dediego@iepgroup.es" },
+  { nombre: "Elena Covadonga", email: "elena.covadonga@iepgroup.es" },
+  { nombre: "Elena Ovejero", email: "elena.ovejero@iepgroup.es" },
+  { nombre: "José Luis Arriaga", email: "jose.luis.arriaga@iepgroup.es" },
+  { nombre: "Ascensión Liébana", email: "ascension.liebana@iepgroup.es" },
+  { nombre: "Ana López", email: "ana.lopez@iepgroup.es" },
+  { nombre: "José Luis Herrero", email: "joseluis.herrero@iepgroup.es" },
+  { nombre: "Antonio Liébana", email: "antonio.liebana@iepgroup.es" },
+  { nombre: "Mónica Juárez", email: "monica.juarez@iepgroup.es" },
+  { nombre: "Óscar Partida", email: "oscar.partida@iepgroup.es" }
+];
+
+/* ------------------------------------------------------------
+   FIN CONFIGURACIÓN
+   ------------------------------------------------------------ */
+
+// ADMIN CREDENTIALS (sin tocar)
+const ADMINS = ["admin1","admin2"];
+const ADMIN_PASS = "Solidarios25";
+
+// localStorage keys
+const KEY_PROFES = "as_profesores_v1";
+const KEY_EVENTOS = "as_eventos_v1";
+
+// --- Utilities: localStorage wrapper ---
+function loadLocal(key, fallback){
+  try {
+    const raw = localStorage.getItem(key);
+    if(!raw) return fallback;
+    return JSON.parse(raw);
+  } catch(e){ console.error("loadLocal error",e); return fallback; }
 }
-async function save(k,v){
-  try{
-    await fetch(SCRIPT_URL,{
-      method:"POST",
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:"save", key:k, value:v})
-    });
-  }catch(e){console.error("Error guardando datos:", e);}
+function saveLocal(key, value){
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch(e){ console.error("saveLocal error",e); }
+}
+
+// On first run populate professors from initial list if none saved
+if(!loadLocal(KEY_PROFES, null)){
+  saveLocal(KEY_PROFES, INITIAL_PROFESORES);
+}
+if(!loadLocal(KEY_EVENTOS, null)){
+  saveLocal(KEY_EVENTOS, []); // empty events initially
 }
 
 // --- LOGIN ---
+let currentUser = null;
 document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  const u=document.getElementById("loginUser").value.trim();
-  const p=document.getElementById("loginPass").value.trim();
-  if(ADMINS.includes(u)&&p===ADMIN_PASS){
-    currentUser={username:u,role:"Admin"};
-    await startApp();
+  const u = document.getElementById("loginUser").value.trim();
+  const p = document.getElementById("loginPass").value.trim();
+  if(ADMINS.includes(u) && p === ADMIN_PASS){
+    currentUser = { username: u, role: "Admin" };
+    startApp();
   } else {
-    let usuarios=await load("usuarios");
-    let user=usuarios.find(x=>x.user===u&&x.pass===p);
-    if(user){currentUser={...user,role:"User"}; await startApp();}
-    else alert("Usuario o contraseña incorrectos");
+    alert("Usuario o contraseña incorrectos");
   }
 });
+
+function logout(){
+  location.reload();
+}
 
 async function startApp(){
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  const displayName = currentUser.role==="Admin"?currentUser.username:(currentUser.nombre||currentUser.user);
-  document.getElementById("welcome").innerText="Bienvenido, "+displayName;
-  document.getElementById("adminButtons").classList.toggle("hidden", currentUser.role!=="Admin");
-  document.getElementById("userButtons").classList.toggle("hidden", currentUser.role==="Admin");
+  document.getElementById("welcome").innerText = "Bienvenido, " + currentUser.username;
   await renderEventosLateral();
-  document.getElementById("panelArea").innerHTML="";
-}
-function logout(){location.reload();}
-
-// --- Panel Usuarios ---
-async function panelUsuarios(){
-  const c=document.getElementById("panelArea");
-  const usuarios=await load("usuarios");
-  c.innerHTML=`
-  <div class="panel">
-    <h3>Gestionar Usuarios</h3>
-    <form id="formUser">
-      <input type="text" id="newUser" placeholder="Usuario" required>
-      <input type="password" id="newPass" placeholder="Contraseña" required>
-      <input type="text" id="nombre" placeholder="Nombre completo" required>
-      <select id="clase">
-        ${["1ºESO","2ºESO","3ºESO","4ºESO"].map(curso=>Array.from({length:curso==="4ºESO"?4:5},(_,i)=>`${curso} ${String.fromCharCode(65+i)}`).map(op=>`<option>${op}</option>`).join("")).join("")}
-      </select>
-      <button type="submit">Agregar</button>
-    </form>
-    <h4>Usuarios existentes</h4>
-    <div id="listaUsuarios"></div>
-  </div>`;
-  const form=document.getElementById("formUser");
-  form.onsubmit=async e=>{
-    e.preventDefault();
-    let arr=await load("usuarios");
-    arr.push({user:form.newUser.value, pass:form.newPass.value, nombre:form.nombre.value, clase:form.clase.value});
-    await save("usuarios", arr);
-    await panelUsuarios();
-  }
-  const lista=document.getElementById("listaUsuarios");
-  usuarios.forEach((u,i)=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    div.innerHTML=`${u.nombre} (${u.user}, ${u.clase}) <button onclick="delUser(${i})">❌</button>`;
-    lista.appendChild(div);
-  });
-}
-async function delUser(i){
-  let u=await load("usuarios");
-  u.splice(i,1);
-  await save("usuarios", u);
-  await panelUsuarios();
+  document.getElementById("panelArea").innerHTML = "";
+  // render profesores small list
+  renderProfesoresMini();
 }
 
-// --- Panel Profesores ---
-async function panelProfesores(){
-  const c=document.getElementById("panelArea");
-  const profs=await load("profesores");
-  c.innerHTML=`
-  <div class="panel">
-    <h3>Gestionar Profesores</h3>
-    <form id="formProf">
-      <input type="text" id="profName" placeholder="Nombre Profesor" required>
-      <input type="email" id="profMail" placeholder="Correo Profesor" required>
-      <button type="submit">Agregar</button>
-    </form>
-    <h4>Profesores registrados</h4>
-    <div id="listaProfs"></div>
-  </div>`;
-  const form=document.getElementById("formProf");
-  form.onsubmit=async e=>{
-    e.preventDefault();
-    let arr=await load("profesores");
-    arr.push({nombre:form.profName.value,email:form.profMail.value});
-    await save("profesores",arr);
-    await panelProfesores();
-  }
-  const lista=document.getElementById("listaProfs");
-  profs.forEach((p,i)=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    div.innerHTML=`${p.nombre} (${p.email}) <button onclick="delProf(${i})">❌</button>`;
-    lista.appendChild(div);
-  });
-}
-async function delProf(i){
-  let arr=await load("profesores");
-  arr.splice(i,1);
-  await save("profesores",arr);
-  await panelProfesores();
-}
-
-// --- Panel Eventos (Admin) ---
+/* ---------------------------
+   EVENTOS PANEL
+   --------------------------- */
 async function panelEventos(){
-  const c=document.getElementById("panelArea");
-  const eventos=await load("eventos");
-  c.innerHTML=`
-  <div class="panel">
-    <h3>Gestionar Eventos</h3>
-    <form id="formEvento">
-      <input type="text" id="evName" placeholder="Nombre evento" required>
-      <input type="time" id="evIni" required> a <input type="time" id="evFin" required>
-      <button type="submit">Agregar</button>
-    </form>
-    <h4>Eventos existentes</h4>
-    <div id="listaEventos"></div>
-  </div>`;
-  const form=document.getElementById("formEvento");
-  form.onsubmit=async e=>{
+  const container = document.getElementById("panelArea");
+  const eventos = loadLocal(KEY_EVENTOS, []);
+  container.innerHTML = `
+    <div class="panel">
+      <h3>Gestionar Eventos</h3>
+      <form id="formEvento">
+        <input type="text" id="evName" placeholder="Nombre evento" required />
+        <div style="display:flex;gap:6px;">
+          <input type="time" id="evIni" required />
+          <input type="time" id="evFin" required />
+        </div>
+        <button type="submit" class="small">Agregar evento</button>
+      </form>
+      <h4 style="margin-top:12px;">Eventos existentes</h4>
+      <div id="listaEventos"></div>
+    </div>
+  `;
+  const form = document.getElementById("formEvento");
+  form.onsubmit = e => {
     e.preventDefault();
-    let arr=await load("eventos");
-    arr.push({nombre:form.evName.value,ini:form.evIni.value,fin:form.evFin.value,asistencias:[]});
-    await save("eventos",arr);
-    await panelEventos();
-    await renderEventosLateral();
-  }
-  const lista=document.getElementById("listaEventos");
-  lista.innerHTML="";
-  eventos.forEach((ev,i)=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    const alumnos=(ev.asistencias||[]).map(a=>`${a.nombre} (${a.clase}) → ${a.resp}`).join("<br>");
-    div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos||"Sin respuestas"} <button onclick="delEvento(${i})">❌</button>`;
+    let arr = loadLocal(KEY_EVENTOS, []);
+    arr.push({ nombre: form.evName.value.trim(), ini: form.evIni.value, fin: form.evFin.value, id: Date.now() });
+    saveLocal(KEY_EVENTOS, arr);
+    panelEventos();
+    renderEventosLateral();
+  };
+
+  const lista = document.getElementById("listaEventos");
+  lista.innerHTML = "";
+  eventos.forEach((ev,i) => {
+    const div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `<div><b>${ev.nombre}</b><div class="muted">${ev.ini} - ${ev.fin}</div></div>
+      <div>
+        <button class="small" onclick="delEvento(${ev.id})">❌ Borrar</button>
+      </div>`;
     lista.appendChild(div);
   });
 }
-async function delEvento(i){
-  let e=await load("eventos");
-  e.splice(i,1);
-  await save("eventos",e);
-  await panelEventos();
-  await renderEventosLateral();
+
+function delEvento(id){
+  let arr = loadLocal(KEY_EVENTOS, []);
+  arr = arr.filter(e => e.id !== id);
+  saveLocal(KEY_EVENTOS, arr);
+  panelEventos();
+  renderEventosLateral();
 }
 
-// --- Panel Eventos Usuario ---
-async function panelEventosUsuario(){
-  const c=document.getElementById("panelArea");
-  const eventos=await load("eventos");
-  const profs=await load("profesores");
-  c.innerHTML="<div class='panel'><h3>Próximos eventos</h3></div>";
-  eventos.forEach((ev,i)=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    let options = profs.length ? profs.map(p=>`<option value="${p.email}">${p.nombre}</option>`).join("") : `<option value="">(Sin profesores)</option>`;
-    div.innerHTML=`${ev.nombre} ${ev.ini}-${ev.fin}
-      <select id="profSel${i}">${options}</select>
-      <button onclick="responder(${i},'Sí')">✅ Sí</button>
-      <button onclick="responder(${i},'No')">❌ No</button>`;
-    c.firstElementChild.appendChild(div);
-  });
-}
-async function responder(i,r){
-  let eventos=await load("eventos");
-  let ev=eventos[i];
-  ev.asistencias=(ev.asistencias||[]).filter(a=>a.user!==currentUser.user);
-  let sel=document.getElementById("profSel"+i);
-  let profEmail=sel?sel.value:"";
-  ev.asistencias.push({user:currentUser.user,nombre:currentUser.nombre,clase:currentUser.clase,resp:r,profEmail});
-  await save("eventos",eventos);
-  alert("Respuesta guardada");
-  await panelEventosUsuario();
-  await renderEventosLateral();
-}
-
-// --- Render Lateral ---
 async function renderEventosLateral(){
-  let eventos=await load("eventos");
-  let cont=document.getElementById("listaEventosLateral");
-  cont.innerHTML="";
-  eventos.forEach(ev=>{
-    let div=document.createElement("div");
-    div.textContent=`${ev.nombre} (${ev.ini}-${ev.fin})`;
-    cont.appendChild(div);
+  const eventos = loadLocal(KEY_EVENTOS, []);
+  const cont = document.getElementById("listaEventosLateral");
+  cont.innerHTML = "";
+  if(eventos.length === 0){
+    cont.textContent = "No hay eventos. Añade eventos desde 'Eventos'.";
+    return;
+  }
+  eventos.forEach(ev => {
+    const d = document.createElement("div");
+    d.textContent = `${ev.nombre} (${ev.ini}-${ev.fin})`;
+    cont.appendChild(d);
   });
 }
 
-// --- Panel Chat Usuario ---
-async function panelChatUsuario(){
-  const c=document.getElementById("panelArea");
-  let msgs=await load("chat_"+currentUser.user);
-  c.innerHTML=`
-  <div class="panel">
-    <h3>Chat con Admin</h3>
-    <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
-    <form id="formChat">
-      <input type="text" id="msgTxt" placeholder="Mensaje">
-      <button type="submit">Enviar</button>
-    </form>
-  </div>`;
-  let msgsDiv=c.querySelector("#msgs");
-  msgsDiv.innerHTML="";
-  msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
-  c.querySelector("#formChat").onsubmit=async e=>{
-    e.preventDefault();
-    let arr=await load("chat_"+currentUser.user);
-    arr.push((currentUser.user||"usuario")+": "+c.querySelector("#msgTxt").value);
-    await save("chat_"+currentUser.user,arr);
-    await panelChatUsuario();
-  }
-}
-
-// --- Panel Chat Admin ---
-async function panelChatAdmin(){
-  const c=document.getElementById("panelArea");
-  const usuarios=await load("usuarios");
-  c.innerHTML="<div class='panel'><h3>Chats de usuarios</h3></div>";
-  usuarios.forEach(u=>{
-    let div=document.createElement("div");
-    div.className="list-item";
-    div.innerHTML=`${u.nombre} (${u.user}) <button onclick="abrirChatAdmin('${u.user}')">Abrir chat</button>`;
-    c.firstElementChild.appendChild(div);
+/* ---------------------------
+   PROFESORES PANEL (editable)
+   --------------------------- */
+function panelProfesores(){
+  const container = document.getElementById("panelArea");
+  const profs = loadLocal(KEY_PROFES, []);
+  container.innerHTML = `
+    <div class="panel">
+      <h3>Gestionar Profesores</h3>
+      <div id="listaProfs"></div>
+    </div>
+  `;
+  const lista = document.getElementById("listaProfs");
+  lista.innerHTML = "";
+  profs.forEach((p, idx) => {
+    const div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `<div><b>${p.nombre}</b><div class="muted">${p.email}</div></div>
+      <div>
+        <button class="small" onclick="delProf(${idx})">❌</button>
+      </div>`;
+    lista.appendChild(div);
   });
 }
-async function abrirChatAdmin(user){
-  const c=document.getElementById("panelArea");
-  let msgs=await load("chat_"+user);
-  c.innerHTML=`
-  <div class="panel">
-    <h3>Chat con ${user}</h3>
-    <div id="msgs" style="border:1px solid #ccc; max-height:200px; overflow:auto; margin:5px;"></div>
-    <form id="formChat">
-      <input type="text" id="msgTxt" placeholder="Mensaje">
-      <button type="submit">Enviar</button>
-    </form>
-  </div>`;
-  let msgsDiv=c.querySelector("#msgs");
-  msgsDiv.innerHTML="";
-  msgs.forEach(m=>{ let p=document.createElement("p"); p.textContent=m; msgsDiv.appendChild(p); });
-  c.querySelector("#formChat").onsubmit=async e=>{
-    e.preventDefault();
-    let arr=await load("chat_"+user);
-    arr.push("Admin: "+c.querySelector("#msgTxt").value);
-    await save("chat_"+user,arr);
-    await abrirChatAdmin(user);
-  }
+
+document.getElementById("formAddProfesor").addEventListener("submit", e=>{
+  e.preventDefault();
+  const name = document.getElementById("profName").value.trim();
+  const email = document.getElementById("profEmail").value.trim();
+  if(!name || !email){ alert("Rellena nombre y correo"); return; }
+  let arr = loadLocal(KEY_PROFES, []);
+  arr.push({ nombre: name, email: email });
+  saveLocal(KEY_PROFES, arr);
+  document.getElementById("profName").value = "";
+  document.getElementById("profEmail").value = "";
+  panelProfesores();
+  renderProfesoresMini();
+});
+
+function delProf(i){
+  if(!confirm("¿Eliminar este profesor?")) return;
+  let arr = loadLocal(KEY_PROFES, []);
+  arr.splice(i,1);
+  saveLocal(KEY_PROFES, arr);
+  panelProfesores();
+  renderProfesoresMini();
 }
 
-// --- Panel Autorizaciones ---
+function renderProfesoresMini(){
+  const wrap = document.getElementById("panelProfesoresContainer");
+  const profs = loadLocal(KEY_PROFES, []);
+  wrap.innerHTML = "";
+  profs.forEach(p => {
+    const d = document.createElement("div");
+    d.className = "muted";
+    d.textContent = `${p.nombre} — ${p.email}`;
+    wrap.appendChild(d);
+  });
+}
+
+/* ---------------------------
+   AUTORIZACIONES
+   --------------------------- */
 async function panelAutorizaciones(){
-  const c=document.getElementById("panelArea");
-  let eventos=await load("eventos");
-  c.innerHTML=`<div class="panel"><h3>Autorizaciones pendientes</h3></div>`;
-  let panel=c.querySelector(".panel");
-  eventos.forEach((ev,i)=>{
-    if(ev.asistencias && ev.asistencias.length>0){
-      let div=document.createElement("div");
-      div.className="list-item";
-      let alumnos=ev.asistencias.map(a=>`${a.nombre} (${a.clase}) → ${a.resp} ${a.resp==="Sí"?`<button onclick="enviarAutorizacion('${a.nombre}','${a.clase}','${ev.ini}','${ev.fin}','${a.profEmail}')">✉️ Autorizar</button>`:""}`).join("<br>");
-      div.innerHTML=`<b>${ev.nombre}</b> ${ev.ini}-${ev.fin}<br>${alumnos}`;
-      panel.appendChild(div);
-    }
+  const container = document.getElementById("panelArea");
+  const profs = loadLocal(KEY_PROFES, []);
+  const eventos = loadLocal(KEY_EVENTOS, []);
+  container.innerHTML = `
+    <div class="panel">
+      <h3>Autorizaciones</h3>
+      <p class="muted">Selecciona alumnos (múltiple), evento y uno o varios profesores. Se enviará un correo individual por cada combinación alumno→profesor.</p>
+      <div style="margin-top:10px;">
+        <h4>Alumnos</h4>
+        <div id="alumnosList" class="checkbox-grid"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <h4>Evento</h4>
+        <select id="eventoSelect">${eventos.length?eventos.map(ev=>`<option value="${ev.id}">${ev.nombre} (${ev.ini}-${ev.fin})</option>`).join("") : `<option value="">(Sin eventos)</option>`}</select>
+      </div>
+      <div style="margin-top:10px;">
+        <h4>Profesores</h4>
+        <div id="profesList" class="checkbox-grid"></div>
+      </div>
+      <div style="margin-top:12px;">
+        <button id="sendAuth" class="small">Enviar autorizaciones</button>
+      </div>
+    </div>
+  `;
+
+  // render alumnos
+  const alumnosWrap = document.getElementById("alumnosList");
+  alumnosWrap.innerHTML = "";
+  ALUMNOS.forEach((a, i) => {
+    const id = `alumno_${i}`;
+    const el = document.createElement("label");
+    el.style = "display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;";
+    el.innerHTML = `<input type="checkbox" id="${id}" value="${a}"><div>${a}</div>`;
+    alumnosWrap.appendChild(el);
   });
+
+  // render profesores
+  const profsWrap = document.getElementById("profesList");
+  profsWrap.innerHTML = "";
+  profs.forEach((p, idx) => {
+    const id = `prof_${idx}`;
+    const el = document.createElement("label");
+    el.style = "display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;";
+    el.innerHTML = `<input type="checkbox" id="${id}" data-email="${p.email}" data-nombre="${p.nombre}"><div><b>${p.nombre}</b><div class="muted">${p.email}</div></div>`;
+    profsWrap.appendChild(el);
+  });
+
+  document.getElementById("sendAuth").onclick = async () => {
+    // selected alumnos
+    const selectedAlumnos = [];
+    ALUMNOS.forEach((a,i)=>{
+      const cb = document.getElementById(`alumno_${i}`);
+      if(cb && cb.checked) selectedAlumnos.push(a);
+    });
+    if(selectedAlumnos.length === 0){ alert("Selecciona al menos un alumno."); return; }
+
+    // selected event
+    const evId = document.getElementById("eventoSelect").value;
+    if(!evId){ alert("Selecciona un evento."); return; }
+    const evento = loadLocal(KEY_EVENTOS, []).find(e => String(e.id) === String(evId));
+    if(!evento){ alert("Evento no encontrado."); return; }
+
+    // selected profesores
+    const profNodes = Array.from(document.querySelectorAll("#profesList input[type=checkbox]"));
+    const selectedProfs = profNodes.filter(n => n.checked).map(n => ({ nombre: n.dataset.nombre, email: n.dataset.email }));
+    if(selectedProfs.length === 0){ alert("Selecciona al menos un profesor."); return; }
+
+    // Confirmar acción
+    if(!confirm(`Vas a enviar ${selectedAlumnos.length * selectedProfs.length} correos (uno por cada alumno x profesor). ¿Continuar?`)) return;
+
+    // Enviar correos: UN correo individual por alumno×profesor
+    const serviceId = "service_eb2pt87";
+    const templateId = "template_0z24xrk";
+    const promises = [];
+
+    selectedAlumnos.forEach(alumno => {
+      selectedProfs.forEach(prof => {
+        // preparar params según tu template original (ajusta campos si tu template espera otros)
+        const templateParams = {
+          to_email: prof.email,
+          nombre: alumno,          // nombre del alumno
+          clase: "",               // no tenemos clase en la lista fija; si quieres añadir, modifica ALUMNOS a objetos
+          ini: evento.ini,
+          fin: evento.fin,
+          evento: evento.nombre
+        };
+        promises.push(
+          emailjs.send(serviceId, templateId, templateParams)
+            .then(()=> ({ status: "fulfilled", alumno, prof: prof.email }))
+            .catch(err => ({ status: "rejected", alumno, prof: prof.email, error: err }))
+        );
+      });
+    });
+
+    // Esperar a que terminen todos
+    const results = await Promise.all(promises);
+    const ok = results.filter(r => r.status === "fulfilled").length;
+    const fail = results.filter(r => r.status === "rejected").length;
+
+    alert(`Envio completado. Éxitos: ${ok}. Fallos: ${fail}.`);
+  };
 }
 
-function enviarAutorizacion(nombre,clase,ini,fin,profMail){
-  emailjs.send("service_eb2pt87","template_0z24xrk",{
-    to_email: profMail,
-    nombre: nombre,
-    clase: clase,
-    ini: ini,
-    fin: fin
-  }).then(()=>alert("✅ Autorización enviada automáticamente a "+profMail), err=>alert("❌ Error al enviar: "+JSON.stringify(err)));
-}
+/* ---------------------------
+   Inicialización automática: muestra panel Eventos al iniciar
+   --------------------------- */
+window.addEventListener("load", () => {
+  // nada por defecto
+});
+
+/* ---------------------------
+   Nota: Si quieres ampliar alumnos con 'clase' o 'profesor asignado', puedes
+   cambiar ALUMNOS a un array de objetos: { nombre:"...", clase:"4ºESO A", profesorEmail:"..." }
+   y adaptar la UI. Por ahora queda simple para editar en la parte superior.
+   --------------------------- */
 </script>
 </body>
 </html>
+
+</html>
+
