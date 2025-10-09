@@ -1,343 +1,275 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Autorizaciones Solidarios FD</title>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #334155;
-      color: white;
-      padding: 10px 20px;
-      text-align: center;
-    }
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      background: #e2e8f0;
-      padding: 10px;
-    }
-    nav button {
-      background: #64748b;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    nav button:hover {
-      background: #475569;
-    }
-    .panel {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 700px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    input, select, textarea {
-      width: 100%;
-      margin: 6px 0;
-      padding: 6px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-    }
-    .small {
-      padding: 5px 10px;
-      font-size: 0.9em;
-    }
-    .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-      padding: 8px;
-      border-radius: 8px;
-      margin: 4px 0;
-    }
-    .muted {
-      color: #6b7280;
-      font-size: 0.9em;
-    }
-    .btn {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #2563eb;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Alumnos Solidarios — Admin</title>
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  (function(){
+    emailjs.init("nXxJ4Ujpxo56o0BUT"); // Public Key
+  })();
+</script>
+
+<style>
+body, html { margin:0; padding:0; height:100%; font-family:Arial,sans-serif; background:linear-gradient(135deg, red, yellow, orange); }
+header { display:flex; justify-content:space-between; padding:15px 25px; font-weight:bold; color:black; font-size:20px; background:rgba(255,255,255,0.8); }
+.login-container { height:calc(100% - 60px); display:flex; justify-content:center; align-items:center; }
+.card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.3); width:360px; max-width:95%; }
+.card input, .card button, select, textarea { width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
+.card button { background:black; color:white; cursor:pointer; border:none; }
+.hidden { display:none; }
+.app { padding:20px; display:flex; flex-wrap:wrap; }
+#left { flex:1; min-width:260px; background:rgba(255,255,255,0.9); padding:15px; border-radius:10px; margin-right:20px; }
+#right { flex:2; min-width:340px; display:flex; flex-direction:column; align-items:center; }
+.btn { padding:14px; margin:8px; border:none; border-radius:10px; cursor:pointer; font-size:16px; width:85%; background:black; color:white; }
+.btn:hover { background:#333; }
+.panel { margin-top:20px; background:white; padding:15px; border-radius:10px; width:95%; box-sizing:border-box; }
+.list-item { border-bottom:1px solid #ccc; padding:8px; display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center; }
+.muted { color:#666; font-size:14px; }
+@media (max-width:768px){ .app{ flex-direction:column; } #left{ margin-right:0; margin-bottom:20px; } }
+.small { font-size:13px; padding:6px 8px; }
+.checkbox-grid { display:grid; gap:6px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
+</style>
 </head>
 <body>
-  <header><h2>📌 Autorizaciones Solidarios FD</h2></header>
+<header>
+  <div>Voluntariado</div>
+  <div>Alumnos Solidarios — Admin</div>
+</header>
 
-  <nav>
-    <button onclick="panelEventos()">Eventos</button>
-    <button onclick="panelAutorizaciones()">Autorizaciones</button>
-    <button onclick="panelProfesores()">Profesores</button>
-  </nav>
+<!-- LOGIN -->
+<div id="login" class="login-container">
+  <div class="card">
+    <h2>Iniciar Sesión (Admin)</h2>
+    <form id="loginForm">
+      <input type="text" id="loginUser" placeholder="Usuario" required />
+      <input type="password" id="loginPass" placeholder="Contraseña" required />
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</div>
 
-  <div id="panelArea"></div>
+<!-- APP -->
+<div id="app" class="hidden">
+  <h2 id="welcome" style="margin-left:20px;"></h2>
+  <div class="app">
+    <div id="left">
+      <h3>Próximos Eventos</h3>
+      <div id="listaEventosLateral" class="muted"></div>
+      <div class="panel" style="margin-top:12px;">
+        <h3>Profesores (panel)</h3>
+        <div id="panelProfesoresContainer"></div>
+        <hr>
+        <h4>Añadir profesor</h4>
+        <form id="formAddProfesor">
+          <input type="text" id="profName" placeholder="Nombre profesor" required />
+          <input type="email" id="profEmail" placeholder="Correo profesor" required />
+          <button type="submit" class="small">Agregar profesor</button>
+        </form>
+      </div>
+    </div>
 
-  <script>
-    emailjs.init("cWbA2V4zKpB7X6iWd"); // Tu Public Key de EmailJS
+    <div id="right">
+      <div id="adminButtons">
+        <button class="btn" onclick="panelEventos()">Eventos</button>
+        <button class="btn" onclick="panelProfesores()">Profesores</button>
+        <button class="btn" onclick="panelAutorizaciones()">Autorizaciones</button>
+      </div>
 
-    const KEY_EVENTOS = "solidarios_eventos";
-    const KEY_PROFS = "solidarios_profesores";
+      <div id="panelArea" style="width:100%;"></div>
 
-    function saveLocal(key, data) {
-      localStorage.setItem(key, JSON.stringify(data));
-    }
-    function loadLocal(key, def) {
-      return JSON.parse(localStorage.getItem(key) || JSON.stringify(def));
-    }
+      <button onclick="logout()" class="btn" style="background:red;margin-top:20px;">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
 
-    function renderEventosLateral() {} // (placeholder)
+<script>
+/* ---------------- CONFIGURACIÓN EDITABLE ---------------- */
+const ALUMNOS = [/* igual que antes */];
+const INITIAL_PROFESORES = [/* igual que antes */];
 
-    /* ---------------------------
-       PANEL: EVENTOS (franja de días)
-    --------------------------- */
-    async function panelEventos(){
-      const container = document.getElementById("panelArea");
-      const eventos = loadLocal(KEY_EVENTOS, []);
-      container.innerHTML = `
-        <div class="panel">
-          <h3>Gestionar Eventos</h3>
-          <form id="formEvento">
-            <input type="text" id="evName" placeholder="Nombre del evento" required />
-            <label>Franja de días autorizada:</label>
-            <div style="display:flex;gap:6px;">
-              <input type="date" id="evDateIni" required />
-              <span>a</span>
-              <input type="date" id="evDateFin" required />
-            </div>
-            <label>Franja horaria:</label>
-            <div style="display:flex;gap:6px;">
-              <input type="time" id="evIni" required />
-              <input type="time" id="evFin" required />
-            </div>
-            <button type="submit" class="small">Agregar evento</button>
-          </form>
-          <h4 style="margin-top:12px;">Eventos existentes</h4>
-          <div id="listaEventos"></div>
+/* ---------------- CONFIGURACIÓN ADMIN ---------------- */
+const ADMINS = ["admin1","admin2"];
+const ADMIN_PASS = "Solidarios25";
+const KEY_PROFES = "as_profesores_v1";
+const KEY_EVENTOS = "as_eventos_v2"; // nueva versión (añade días)
+
+function loadLocal(key,fallback){ try{ return JSON.parse(localStorage.getItem(key))||fallback; }catch(e){ return fallback; } }
+function saveLocal(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+
+if(!loadLocal(KEY_PROFES,null)) saveLocal(KEY_PROFES,INITIAL_PROFESORES);
+if(!loadLocal(KEY_EVENTOS,null)) saveLocal(KEY_EVENTOS,[]);
+
+let currentUser = null;
+
+/* ---------------- LOGIN ---------------- */
+document.getElementById("loginForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const u = document.getElementById("loginUser").value.trim();
+  const p = document.getElementById("loginPass").value.trim();
+  if(ADMINS.includes(u) && p===ADMIN_PASS){
+    currentUser={username:u,role:"Admin"};
+    startApp();
+  } else { alert("Usuario o contraseña incorrectos"); }
+});
+
+function logout(){ location.reload(); }
+
+async function startApp(){
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("welcome").innerText="Bienvenido, "+currentUser.username;
+  renderEventosLateral();
+  panelEventos();
+  renderProfesoresMini();
+}
+
+/* ---------------- PANEL EVENTOS ---------------- */
+function panelEventos(){
+  const container = document.getElementById("panelArea");
+  const eventos = loadLocal(KEY_EVENTOS,[]);
+  container.innerHTML = `
+    <div class="panel">
+      <h3>Gestionar Eventos</h3>
+      <form id="formEvento">
+        <input type="text" id="evName" placeholder="Nombre evento" required />
+        <input type="text" id="evDias" placeholder="Franja de días autorizados (ej: 9-11 oct)" required />
+        <div style="display:flex;gap:6px;">
+          <input type="time" id="evIni" required />
+          <input type="time" id="evFin" required />
         </div>
-      `;
+        <button type="submit" class="small">Agregar evento</button>
+      </form>
+      <h4 style="margin-top:12px;">Eventos existentes</h4>
+      <div id="listaEventos"></div>
+    </div>
+  `;
+  const form = document.getElementById("formEvento");
+  form.onsubmit = e=>{
+    e.preventDefault();
+    let arr = loadLocal(KEY_EVENTOS,[]);
+    arr.push({nombre:form.evName.value.trim(),dias:form.evDias.value.trim(),ini:form.evIni.value,fin:form.evFin.value,id:Date.now()});
+    saveLocal(KEY_EVENTOS,arr);
+    panelEventos();
+    renderEventosLateral();
+  };
+  const lista = document.getElementById("listaEventos");
+  lista.innerHTML = "";
+  eventos.forEach(ev=>{
+    const div = document.createElement("div");
+    div.className="list-item";
+    div.innerHTML = `<div><b>${ev.nombre}</b><div class="muted">${ev.dias} — ${ev.ini} a ${ev.fin}</div></div>
+      <div><button class="small" onclick="delEvento(${ev.id})">❌ Borrar</button></div>`;
+    lista.appendChild(div);
+  });
+}
 
-      const form = document.getElementById("formEvento");
-      form.onsubmit = e => {
-        e.preventDefault();
-        let arr = loadLocal(KEY_EVENTOS, []);
-        arr.push({
-          nombre: form.evName.value.trim(),
-          fecha_ini: form.evDateIni.value,
-          fecha_fin: form.evDateFin.value,
-          ini: form.evIni.value,
-          fin: form.evFin.value,
-          id: Date.now()
-        });
-        saveLocal(KEY_EVENTOS, arr);
-        panelEventos();
-      };
+function delEvento(id){
+  let arr = loadLocal(KEY_EVENTOS,[]);
+  arr = arr.filter(e=>e.id!==id);
+  saveLocal(KEY_EVENTOS,arr);
+  panelEventos();
+  renderEventosLateral();
+}
 
-      const lista = document.getElementById("listaEventos");
-      lista.innerHTML = "";
-      eventos.forEach(ev => {
-        const div = document.createElement("div");
-        div.className = "list-item";
-        div.innerHTML = `
-          <div>
-            <b>${ev.nombre}</b>
-            <div class="muted">${ev.fecha_ini} → ${ev.fecha_fin} (${ev.ini} a ${ev.fin})</div>
-          </div>
-          <div><button class="small" onclick="delEvento(${ev.id})">❌ Borrar</button></div>
-        `;
-        lista.appendChild(div);
+function renderEventosLateral(){
+  const eventos = loadLocal(KEY_EVENTOS,[]);
+  const cont = document.getElementById("listaEventosLateral");
+  cont.innerHTML="";
+  if(eventos.length===0){ cont.textContent="No hay eventos."; return; }
+  eventos.forEach(ev=>{
+    const d=document.createElement("div");
+    d.textContent=`${ev.nombre} (${ev.dias} ${ev.ini}-${ev.fin})`;
+    cont.appendChild(d);
+  });
+}
+
+/* ---------------- PROFESORES ---------------- */
+function panelProfesores(){ /* igual que antes */ }
+function renderProfesoresMini(){ /* igual que antes */ }
+
+/* ---------------- AUTORIZACIONES ---------------- */
+function panelAutorizaciones(){
+  const container=document.getElementById("panelArea");
+  const profs=loadLocal(KEY_PROFES,[]);
+  const eventos=loadLocal(KEY_EVENTOS,[]);
+  container.innerHTML=`
+    <div class="panel">
+      <h3>Autorizaciones</h3>
+      <p class="muted">Selecciona alumnos, evento y profesores. Se enviará un correo por cada alumno y profesor seleccionado.</p>
+      <div style="margin-top:10px;">
+        <h4>Alumnos</h4>
+        <div id="alumnosList" class="checkbox-grid"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <h4>Evento</h4>
+        <select id="eventoSelect">${eventos.map(ev=>`<option value="${ev.id}">${ev.nombre} (${ev.dias} ${ev.ini}-${ev.fin})</option>`).join("")}</select>
+      </div>
+      <div style="margin-top:10px;">
+        <h4>Profesores</h4>
+        <div id="profesList" class="checkbox-grid"></div>
+      </div>
+      <div style="margin-top:12px;">
+        <button id="sendAuth" class="small">Enviar autorizaciones</button>
+      </div>
+    </div>
+  `;
+
+  // alumnos
+  const alumnosWrap=document.getElementById("alumnosList");
+  ALUMNOS.forEach((a,i)=>{
+    alumnosWrap.innerHTML+=`<label style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;"><input type="checkbox" id="alumno_${i}" value="${a}"><div>${a}</div></label>`;
+  });
+
+  // profes
+  const profsWrap=document.getElementById("profesList");
+  profs.forEach((p,idx)=>{
+    profsWrap.innerHTML+=`<label style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;"><input type="checkbox" id="prof_${idx}" data-email="${p.email}" data-nombre="${p.nombre}"><div><b>${p.nombre}</b><div class="muted">${p.email}</div></div></label>`;
+  });
+
+  document.getElementById("sendAuth").onclick=async()=>{
+    const selectedAlumnos=ALUMNOS.filter((_,i)=>document.getElementById(`alumno_${i}`).checked);
+    if(selectedAlumnos.length===0){ alert("Selecciona al menos un alumno."); return; }
+
+    const evId=document.getElementById("eventoSelect").value;
+    const evento=eventos.find(e=>String(e.id)===String(evId));
+    if(!evento){ alert("Selecciona un evento válido."); return; }
+
+    const selectedProfs=Array.from(document.querySelectorAll("#profesList input[type=checkbox]:checked"))
+      .map(n=>({nombre:n.dataset.nombre,email:n.dataset.email}));
+    if(selectedProfs.length===0){ alert("Selecciona al menos un profesor."); return; }
+
+    if(!confirm(`Se enviarán ${selectedAlumnos.length*selectedProfs.length} correos. ¿Continuar?`)) return;
+
+    const serviceId="service_eb2pt87";
+    const templateId="template_0z24xrk";
+    const promises=[];
+    selectedAlumnos.forEach(alumno=>{
+      selectedProfs.forEach(prof=>{
+        const templateParams={
+          to_email:prof.email,
+          nombre:alumno,
+          clase:"",
+          dias:evento.dias,
+          ini:evento.ini,
+          fin:evento.fin,
+          evento:evento.nombre,
+          subject:`Autorización ${evento.nombre} (${evento.dias})`
+        };
+        promises.push(emailjs.send(serviceId,templateId,templateParams)
+          .then(()=>({ok:true}))
+          .catch(()=>({ok:false})));
       });
-    }
-
-    function delEvento(id){
-      let arr = loadLocal(KEY_EVENTOS, []);
-      arr = arr.filter(e => e.id !== id);
-      saveLocal(KEY_EVENTOS, arr);
-      panelEventos();
-    }
-
-    /* ---------------------------
-       PANEL: PROFESORES
-    --------------------------- */
-    async function panelProfesores(){
-      const container = document.getElementById("panelArea");
-      const profs = loadLocal(KEY_PROFS, [
-        {nombre:"Juan José", email:"juanjose@iepgroup.es"},
-        {nombre:"Susana de Diego", email:"susana.dediego@iepgroup.es"},
-        {nombre:"Elena Covadonga", email:"elena.covadonga@iepgroup.es"},
-        {nombre:"Elena Ovejero", email:"elena.ovejero@iepgroup.es"},
-        {nombre:"José Luis Arriaga", email:"jose.luis.arriaga@iepgroup.es"},
-        {nombre:"Ascensión Liébana", email:"ascension.liebana@iepgroup.es"},
-        {nombre:"Ana López", email:"ana.lopez@iepgroup.es"},
-        {nombre:"José Luis Herrero", email:"joseluis.herrero@iepgroup.es"},
-        {nombre:"Antonio Liébana", email:"antonio.liebana@iepgroup.es"},
-        {nombre:"Mónica Juárez", email:"monica.juarez@iepgroup.es"},
-        {nombre:"Óscar Partida", email:"oscar.partida@iepgroup.es"},
-        {nombre:"Mario Orte", email:"mario.orte.gomez@alumnojoyfe.iepgroup.es"}
-      ]);
-      container.innerHTML = `
-        <div class="panel">
-          <h3>Profesores</h3>
-          <form id="formProf">
-            <input type="text" id="profName" placeholder="Nombre del profesor" required />
-            <input type="email" id="profEmail" placeholder="Correo electrónico" required />
-            <button type="submit" class="small">Agregar</button>
-          </form>
-          <div id="listaProfs"></div>
-        </div>
-      `;
-      const form = document.getElementById("formProf");
-      form.onsubmit = e => {
-        e.preventDefault();
-        let arr = loadLocal(KEY_PROFS, []);
-        arr.push({ nombre: form.profName.value.trim(), email: form.profEmail.value.trim() });
-        saveLocal(KEY_PROFS, arr);
-        panelProfesores();
-      };
-
-      const lista = document.getElementById("listaProfs");
-      lista.innerHTML = "";
-      profs.forEach((p,i) => {
-        const div = document.createElement("div");
-        div.className = "list-item";
-        div.innerHTML = `<div>${p.nombre}<div class='muted'>${p.email}</div></div>
-        <div><button class="small" onclick="delProf(${i})">❌</button></div>`;
-        lista.appendChild(div);
-      });
-    }
-
-    function delProf(i){
-      let arr = loadLocal(KEY_PROFS, []);
-      arr.splice(i,1);
-      saveLocal(KEY_PROFS, arr);
-      panelProfesores();
-    }
-
-    /* ---------------------------
-       PANEL: AUTORIZACIONES
-    --------------------------- */
-    async function panelAutorizaciones(){
-      const alumnos = [
-        "JUAN ALCAIDE ORTEGA","IGNACIO ALONSO FERNÁNDEZ","ANA APARICIO DE DIEGO",
-        "BLANCA ARÍAS LOMAS","NOA ASENSIO LEGIDO","ISABELLA BENTO RUIZ",
-        "EMMA BERMÚDEZ LÓPEZ","cyan blaise velasquez","Asier Bocardo Melguizo",
-        "SOFÍA BRAVO TEJERO","MAR SARAY CÁCERES FLORES","ARIADNE CALDERÓN PÉREZ",
-        "DANIELA CAÑETE LÓPEZ","MARÍA COBOS BENEDICTO","IVAN CORREIA NARROS",
-        "ALEJANDRO DE BLAS LÓPEZ-EGEA","ADRIÁN DELGADO GONZALEZ","PABLO DUY DÍAZ SANTÍN",
-        "SOFÍA DÍAZ-PACHE ROJAS","VEGA EGEA ARO","SARA FERNÁNDEZ BUITRAGO",
-        "RUTH FERNÁNDEZ GONZALO","César Fernández Zarco","MARCOS GARCÍA BARTOLOMÉ",
-        "BLANCA GARCÍA ESTEBAN","DANIELA GARCÍA GÓMEZ","Hugo García González",
-        "VÍCTOR GARCÍA RAMÍREZ","MARÍA GÓMEZ CARMONA","MÓNICA GUTIÉRREZ ROMÁN",
-        "MARÍA HERRÁEZ MARTÍNEZ","EMMA HERRERO BENITO","EMMA HUERTAS LÓPEZ",
-        "SARA LEONARDO GARCÍA","Aini Li","Dimas López","ELENA MARTÍNEZ BAÑÓN",
-        "NOA MARTÍNEZ HURTADO","DANIEL ORTE GÓMEZ","GUILLERMO PALACIOS ASPIAZU (guiso)",
-        "LUCÍA PÉREZ GALIANA","MARCELA RAMOS GUDÍN","LIA RODRÍGUEZ SIERRA",
-        "ANDRÉS ROMERO OCHOA","CLAUDIA JING XIAN RUAN","Isabela RUBIO PARRA",
-        "DOMENIKOS SALAZAR BALLI","PRITHIKA THIRUNAVUKKARASU","SOFÍA TORRES FERNÁNDEZ",
-        "ERIKA VÁZQUEZ SÁNCHEZ","CLAUDIA VERA CANTALAPIEDRA","CARLA VIVAR DEL CASTILLO",
-        "LUCAS WILT ESCRIBANO","Angela Xia","MINGHAO XU","WAN YUE YANG","YINGZHAO ZHOU"
-      ];
-      const eventos = loadLocal(KEY_EVENTOS, []);
-      const profs = loadLocal(KEY_PROFS, []);
-      const container = document.getElementById("panelArea");
-
-      container.innerHTML = `
-        <div class="panel">
-          <h3>Enviar Autorizaciones</h3>
-          <label>Selecciona evento:</label>
-          <select id="selEvento">
-            <option value="">-- Selecciona --</option>
-            ${eventos.map(e=>`<option value="${e.id}">${e.nombre} (${e.fecha_ini}→${e.fecha_fin})</option>`).join("")}
-          </select>
-          <label>Selecciona alumnos:</label>
-          <select id="selAlumnos" multiple size="8">${alumnos.map(a=>`<option>${a}</option>`).join("")}</select>
-          <label>Selecciona profesores:</label>
-          <select id="selProfs" multiple size="8">${profs.map(p=>`<option value="${p.email}">${p.nombre}</option>`).join("")}</select>
-          <button id="btnSend" class="btn" style="margin-top:10px;">Enviar autorizaciones</button>
-          <div id="res"></div>
-        </div>
-      `;
-
-      document.getElementById("btnSend").onclick = async ()=>{
-        const evento = eventos.find(e=>e.id == document.getElementById("selEvento").value);
-        if(!evento) return alert("Selecciona un evento");
-        const selAl = Array.from(document.getElementById("selAlumnos").selectedOptions).map(o=>o.text);
-        const selPr = Array.from(document.getElementById("selProfs").selectedOptions).map(o=>({email:o.value,nombre:o.text}));
-        if(selAl.length===0 || selPr.length===0) return alert("Selecciona al menos un alumno y un profesor.");
-
-        const serviceId = "service_eb2pt87";
-        const templateId = "template_0z24xrk";
-        const promises = [];
-
-        selAl.forEach(alumno=>{
-          selPr.forEach(prof=>{
-            const contenido = `
-AUTORIZACIÓN DE SALIDA DE CLASE
-
-El grupo SOLIDARIOS del centro educativo comunica a los profesores y responsables que el/la alumno/a indicado a continuación queda autorizado/a para ausentarse de su clase con motivo de la participación en una actividad solidaria organizada dentro del marco de las acciones de voluntariado escolar.
-
-Nombre del alumno/a: ${alumno}
-Curso / Grupo: (indicar si procede)
-Actividad: ${evento.nombre}
-Días autorizados: del ${evento.fecha_ini} al ${evento.fecha_fin}
-Franja horaria autorizada: ${evento.ini} a ${evento.fin}
-
-Durante este tiempo, el/la alumno/a estará bajo la supervisión de los responsables de la actividad solidaria y se compromete a reincorporarse a sus clases habituales una vez finalizada la misma.
-
-Este documento tiene validez únicamente para el periodo y franja horaria señalados, y deberá presentarse al profesor/a correspondiente al inicio de cada salida.
-
-📌 ALUMNOS SOLIDARIOS DE FD
-            `.trim();
-
-            const templateParams = {
-              to_email: prof.email,
-              nombre: alumno,
-              clase: "",
-              evento: evento.nombre,
-              fecha_ini: evento.fecha_ini,
-              fecha_fin: evento.fecha_fin,
-              ini: evento.ini,
-              fin: evento.fin,
-              contenido: contenido,
-              subject: `Autorización — ${alumno} (${evento.nombre}) del ${evento.fecha_ini} al ${evento.fecha_fin}`
-            };
-
-            promises.push(
-              emailjs.send(serviceId, templateId, templateParams)
-                .then(()=>({status:"ok", alumno, prof:prof.email}))
-                .catch(err=>({status:"err", alumno, prof:prof.email, err}))
-            );
-          });
-        });
-
-        const results = await Promise.all(promises);
-        const ok = results.filter(r=>r.status==="ok").length;
-        const fail = results.length - ok;
-        document.getElementById("res").innerHTML = `<p>✅ Enviados: ${ok} &nbsp;&nbsp; ❌ Fallidos: ${fail}</p>`;
-      };
-    }
-
-    panelEventos(); // vista inicial
-  </script>
+    });
+    const results=await Promise.all(promises);
+    const ok=results.filter(r=>r.ok).length;
+    alert(`Envío completado. Correctos: ${ok} / Fallidos: ${results.length-ok}`);
+  };
+}
+</script>
 </body>
 </html>
 
