@@ -167,27 +167,40 @@ function panelEventos(){
   container.innerHTML = `
     <div class="panel">
       <h3>Gestionar Eventos</h3>
-      <form id="formEvento">
-        <input type="text" id="evName" placeholder="Nombre evento" required />
-        <div style="display:flex;gap:6px;">
-          <input type="date" id="evIni" required />
-          <input type="date" id="evFin" required />
-        </div>
-        <button type="submit" class="small">Agregar evento</button>
-      </form>
+    <form id="formEvento">
+  <input type="text" id="evName" placeholder="Nombre evento" required />
+  <div style="display:flex; gap:6px; margin-bottom:6px;">
+    <input type="date" id="evIniDate" required />
+    <input type="time" id="evIniTime" required />
+  </div>
+  <div style="display:flex; gap:6px;">
+    <input type="date" id="evFinDate" required />
+    <input type="time" id="evFinTime" required />
+  </div>
+  <button type="submit" class="small">Agregar evento</button>
+</form>
       <h4 style="margin-top:12px;">Eventos existentes</h4>
       <div id="listaEventos"></div>
     </div>
   `;
   const form = document.getElementById("formEvento");
-  form.onsubmit = e=>{
-    e.preventDefault();
-    let arr = loadLocal(KEY_EVENTOS,[]);
-    arr.push({nombre:form.evName.value.trim(),ini:form.evIni.value,fin:form.evFin.value,id:Date.now()});
-    saveLocal(KEY_EVENTOS,arr);
-    panelEventos();
-    renderEventosLateral();
-  };
+  
+form.onsubmit = e => {
+  e.preventDefault();
+  let arr = loadLocal(KEY_EVENTOS, []);
+  const ini = form.evIniDate.value + ' ' + form.evIniTime.value;
+  const fin = form.evFinDate.value + ' ' + form.evFinTime.value;
+  arr.push({
+    nombre: form.evName.value.trim(),
+    ini: ini,
+    fin: fin,
+    id: Date.now()
+  });
+  saveLocal(KEY_EVENTOS, arr);
+  panelEventos();
+  renderEventosLateral();
+};
+
   const lista = document.getElementById("listaEventos");
   lista.innerHTML = "";
   eventos.forEach(ev=>{
@@ -353,3 +366,4 @@ function panelAutorizaciones(){
 </script>
 </body>
 </html>
+
