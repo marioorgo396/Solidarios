@@ -88,14 +88,47 @@ header { display:flex; justify-content:space-between; padding:15px 25px; font-we
 
 <script>
 /* ---------------- CONFIGURACIÓN EDITABLE ---------------- */
-const ALUMNOS = [/* igual que antes */];
-const INITIAL_PROFESORES = [/* igual que antes */];
+const ALUMNOS = [
+"JUAN ALCAIDE ORTEGA","IGNACIO ALONSO FERNÁNDEZ","ANA APARICIO DE DIEGO",
+"BLANCA ARÍAS LOMAS","NOA ASENSIO LEGIDO","ISABELLA BENTO RUIZ","EMMA BERMÚDEZ LÓPEZ",
+"CYAN BLAISE VELASQUEZ","ASIER BOCARDO MELGUIZO","SOFÍA BRAVO TEJERO",
+"MAR SARAY CÁCERES FLORES","ARIADNE CALDERÓN PÉREZ","DANIELA CAÑETE LÓPEZ",
+"MARÍA COBOS BENEDICTO","IVAN CORREIA NARROS","ALEJANDRO DE BLAS LÓPEZ-EGEA",
+"ADRIÁN DELGADO GONZALEZ","PABLO DUY DÍAZ SANTÍN","SOFÍA DÍAZ-PACHE ROJAS",
+"VEGA EGEA ARO","SARA FERNÁNDEZ BUITRAGO","RUTH FERNÁNDEZ GONZALO",
+"CÉSAR FERNÁNDEZ ZARCO","MARCOS GARCÍA BARTOLOMÉ","BLANCA GARCÍA ESTEBAN",
+"DANIELA GARCÍA GÓMEZ","HUGO GARCÍA GONZÁLEZ","VÍCTOR GARCÍA RAMÍREZ",
+"MARÍA GÓMEZ CARMONA","MÓNICA GUTIÉRREZ ROMÁN","MARÍA HERRÁEZ MARTÍNEZ",
+"EMMA HERRERO BENITO","EMMA HUERTAS LÓPEZ","SARA LEONARDO GARCÍA",
+"AINI LI","DIMAS LÓPEZ","ELENA MARTÍNEZ BAÑÓN","NOA MARTÍNEZ HURTADO",
+"DANIEL ORTE GÓMEZ","GUILLERMO PALACIOS ASPIAZU","LUCÍA PÉREZ GALIANA",
+"MARCELA RAMOS GUDÍN","LIA RODRÍGUEZ SIERRA","ANDRÉS ROMERO OCHOA",
+"CLAUDIA JING XIAN RUAN","ISABELA RUBIO PARRA","DOMENIKOS SALAZAR BALLI",
+"PRITHIKA THIRUNAVUKKARASU","SOFÍA TORRES FERNÁNDEZ","ERIKA VÁZQUEZ SÁNCHEZ",
+"CLAUDIA VERA CANTALAPIEDRA","CARLA VIVAR DEL CASTILLO","LUCAS WILT ESCRIBANO",
+"ANGELA XIA","MINGHAO XU","WAN YUE YANG","YINGZHAO ZHOU","MARIO ORTE GÓMEZ"
+];
+
+const INITIAL_PROFESORES = [
+  { nombre: "Juan José", email: "juanjose@iepgroup.es" },
+  { nombre: "Susana de Diego", email: "susana.dediego@iepgroup.es" },
+  { nombre: "Elena Covadonga", email: "elena.covadonga@iepgroup.es" },
+  { nombre: "Elena Ovejero", email: "elena.ovejero@iepgroup.es" },
+  { nombre: "José Luis Arriaga", email: "jose.luis.arriaga@iepgroup.es" },
+  { nombre: "Ascensión Liébana", email: "ascension.liebana@iepgroup.es" },
+  { nombre: "Ana López", email: "ana.lopez@iepgroup.es" },
+  { nombre: "José Luis Herrero", email: "joseluis.herrero@iepgroup.es" },
+  { nombre: "Antonio Liébana", email: "antonio.liebana@iepgroup.es" },
+  { nombre: "Mónica Juárez", email: "monica.juarez@iepgroup.es" },
+  { nombre: "Óscar Partida", email: "oscar.partida@iepgroup.es" },
+  { nombre: "Mario Orte", email: "mario.orte.gomez@alumnojoyfe.iepgroup.es" }
+];
 
 /* ---------------- CONFIGURACIÓN ADMIN ---------------- */
 const ADMINS = ["admin1","admin2"];
 const ADMIN_PASS = "Solidarios25";
 const KEY_PROFES = "as_profesores_v1";
-const KEY_EVENTOS = "as_eventos_v2"; // nueva versión (añade días)
+const KEY_EVENTOS = "as_eventos_v1";
 
 function loadLocal(key,fallback){ try{ return JSON.parse(localStorage.getItem(key))||fallback; }catch(e){ return fallback; } }
 function saveLocal(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
@@ -123,7 +156,7 @@ async function startApp(){
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("welcome").innerText="Bienvenido, "+currentUser.username;
   renderEventosLateral();
-  panelEventos();
+  panelEventos(); // panel inicial
   renderProfesoresMini();
 }
 
@@ -136,10 +169,9 @@ function panelEventos(){
       <h3>Gestionar Eventos</h3>
       <form id="formEvento">
         <input type="text" id="evName" placeholder="Nombre evento" required />
-        <input type="text" id="evDias" placeholder="Franja de días autorizados (ej: 9-11 oct)" required />
         <div style="display:flex;gap:6px;">
-          <input type="time" id="evIni" required />
-          <input type="time" id="evFin" required />
+          <input type="date" id="evIni" required />
+          <input type="date" id="evFin" required />
         </div>
         <button type="submit" class="small">Agregar evento</button>
       </form>
@@ -151,7 +183,7 @@ function panelEventos(){
   form.onsubmit = e=>{
     e.preventDefault();
     let arr = loadLocal(KEY_EVENTOS,[]);
-    arr.push({nombre:form.evName.value.trim(),dias:form.evDias.value.trim(),ini:form.evIni.value,fin:form.evFin.value,id:Date.now()});
+    arr.push({nombre:form.evName.value.trim(),ini:form.evIni.value,fin:form.evFin.value,id:Date.now()});
     saveLocal(KEY_EVENTOS,arr);
     panelEventos();
     renderEventosLateral();
@@ -161,7 +193,7 @@ function panelEventos(){
   eventos.forEach(ev=>{
     const div = document.createElement("div");
     div.className="list-item";
-    div.innerHTML = `<div><b>${ev.nombre}</b><div class="muted">${ev.dias} — ${ev.ini} a ${ev.fin}</div></div>
+    div.innerHTML = `<div><b>${ev.nombre}</b><div class="muted">${ev.ini} - ${ev.fin}</div></div>
       <div><button class="small" onclick="delEvento(${ev.id})">❌ Borrar</button></div>`;
     lista.appendChild(div);
   });
@@ -179,19 +211,66 @@ function renderEventosLateral(){
   const eventos = loadLocal(KEY_EVENTOS,[]);
   const cont = document.getElementById("listaEventosLateral");
   cont.innerHTML="";
-  if(eventos.length===0){ cont.textContent="No hay eventos."; return; }
+  if(eventos.length===0){ cont.textContent="No hay eventos. Añade eventos desde 'Eventos'."; return; }
   eventos.forEach(ev=>{
     const d=document.createElement("div");
-    d.textContent=`${ev.nombre} (${ev.dias} ${ev.ini}-${ev.fin})`;
+    d.textContent=`${ev.nombre} (${ev.ini} - ${ev.fin})`;
     cont.appendChild(d);
   });
 }
 
-/* ---------------- PROFESORES ---------------- */
-function panelProfesores(){ /* igual que antes */ }
-function renderProfesoresMini(){ /* igual que antes */ }
+/* ---------------- PANEL PROFESORES ---------------- */
+function panelProfesores(){
+  const container=document.getElementById("panelArea");
+  const profs = loadLocal(KEY_PROFES,[]);
+  container.innerHTML = `<div class="panel"><h3>Gestionar Profesores</h3><div id="listaProfs"></div></div>`;
+  const lista=document.getElementById("listaProfs");
+  lista.innerHTML="";
+  profs.forEach((p,idx)=>{
+    const div=document.createElement("div");
+    div.className="list-item";
+    div.innerHTML=`<div><b>${p.nombre}</b><div class="muted">${p.email}</div></div>
+      <div><button class="small" onclick="delProf(${idx})">❌</button></div>`;
+    lista.appendChild(div);
+  });
+}
 
-/* ---------------- AUTORIZACIONES ---------------- */
+document.getElementById("formAddProfesor").addEventListener("submit", e=>{
+  e.preventDefault();
+  const name=document.getElementById("profName").value.trim();
+  const email=document.getElementById("profEmail").value.trim();
+  if(!name || !email){ alert("Rellena nombre y correo"); return; }
+  let arr = loadLocal(KEY_PROFES,[]);
+  arr.push({nombre:name,email:email});
+  saveLocal(KEY_PROFES,arr);
+  document.getElementById("profName").value="";
+  document.getElementById("profEmail").value="";
+  panelProfesores();
+  renderProfesoresMini();
+});
+
+function delProf(i){
+  if(!confirm("¿Eliminar este profesor?")) return;
+  let arr = loadLocal(KEY_PROFES,[]);
+  arr.splice(i,1);
+  saveLocal(KEY_PROFES,arr);
+  panelProfesores();
+  renderProfesoresMini();
+}
+
+function renderProfesoresMini(){
+  const wrap=document.getElementById("panelProfesoresContainer");
+  const profs = loadLocal(KEY_PROFES,[]);
+  wrap.innerHTML="";
+  profs.forEach(p=>{
+    const d=document.createElement("div");
+    d.className="muted";
+    d.textContent=`${p.nombre} — ${p.email}`;
+    wrap.appendChild(d);
+  });
+}
+
+/* ---------------- PANEL AUTORIZACIONES ---------------- */
 function panelAutorizaciones(){
   const container=document.getElementById("panelArea");
   const profs=loadLocal(KEY_PROFES,[]);
@@ -199,14 +278,14 @@ function panelAutorizaciones(){
   container.innerHTML=`
     <div class="panel">
       <h3>Autorizaciones</h3>
-      <p class="muted">Selecciona alumnos, evento y profesores. Se enviará un correo por cada alumno y profesor seleccionado.</p>
+      <p class="muted">Selecciona alumnos (múltiple), evento y uno o varios profesores. Se enviará un correo individual por cada combinación alumno→profesor.</p>
       <div style="margin-top:10px;">
         <h4>Alumnos</h4>
         <div id="alumnosList" class="checkbox-grid"></div>
       </div>
       <div style="margin-top:10px;">
         <h4>Evento</h4>
-        <select id="eventoSelect">${eventos.map(ev=>`<option value="${ev.id}">${ev.nombre} (${ev.dias} ${ev.ini}-${ev.fin})</option>`).join("")}</select>
+        <select id="eventoSelect">${eventos.length?eventos.map(ev=>`<option value="${ev.id}">${ev.nombre} (${ev.ini} - ${ev.fin})</option>`).join(""):`<option value="">(Sin eventos)</option>`}</select>
       </div>
       <div style="margin-top:10px;">
         <h4>Profesores</h4>
@@ -218,63 +297,59 @@ function panelAutorizaciones(){
     </div>
   `;
 
-  // alumnos
+  // render alumnos
   const alumnosWrap=document.getElementById("alumnosList");
+  alumnosWrap.innerHTML="";
   ALUMNOS.forEach((a,i)=>{
-    alumnosWrap.innerHTML+=`<label style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;"><input type="checkbox" id="alumno_${i}" value="${a}"><div>${a}</div></label>`;
+    const id=`alumno_${i}`;
+    const el=document.createElement("label");
+    el.style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;";
+    el.innerHTML=`<input type="checkbox" id="${id}" value="${a}"><div>${a}</div>`;
+    alumnosWrap.appendChild(el);
   });
 
-  // profes
+  // render profesores
   const profsWrap=document.getElementById("profesList");
+  profsWrap.innerHTML="";
   profs.forEach((p,idx)=>{
-    profsWrap.innerHTML+=`<label style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;"><input type="checkbox" id="prof_${idx}" data-email="${p.email}" data-nombre="${p.nombre}"><div><b>${p.nombre}</b><div class="muted">${p.email}</div></div></label>`;
+    const id=`prof_${idx}`;
+    const el=document.createElement("label");
+    el.style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid #eee;";
+    el.innerHTML=`<input type="checkbox" id="${id}" data-email="${p.email}" data-nombre="${p.nombre}"><div><b>${p.nombre}</b><div class="muted">${p.email}</div></div>`;
+    profsWrap.appendChild(el);
   });
 
   document.getElementById("sendAuth").onclick=async()=>{
-    const selectedAlumnos=ALUMNOS.filter((_,i)=>document.getElementById(`alumno_${i}`).checked);
+    const selectedAlumnos=[];
+    ALUMNOS.forEach((a,i)=>{ const cb=document.getElementById(`alumno_${i}`); if(cb && cb.checked) selectedAlumnos.push(a); });
     if(selectedAlumnos.length===0){ alert("Selecciona al menos un alumno."); return; }
 
     const evId=document.getElementById("eventoSelect").value;
+    if(!evId){ alert("Selecciona un evento."); return; }
     const evento=eventos.find(e=>String(e.id)===String(evId));
-    if(!evento){ alert("Selecciona un evento válido."); return; }
+    if(!evento){ alert("Evento no encontrado."); return; }
 
-    const selectedProfs=Array.from(document.querySelectorAll("#profesList input[type=checkbox]:checked"))
-      .map(n=>({nombre:n.dataset.nombre,email:n.dataset.email}));
+    const profNodes=Array.from(document.querySelectorAll("#profesList input[type=checkbox]"));
+    const selectedProfs=profNodes.filter(n=>n.checked).map(n=>({nombre:n.dataset.nombre,email:n.dataset.email}));
     if(selectedProfs.length===0){ alert("Selecciona al menos un profesor."); return; }
 
-    if(!confirm(`Se enviarán ${selectedAlumnos.length*selectedProfs.length} correos. ¿Continuar?`)) return;
+    if(!confirm(`Vas a enviar ${selectedAlumnos.length*selectedProfs.length} correos. ¿Continuar?`)) return;
 
     const serviceId="service_eb2pt87";
     const templateId="template_0z24xrk";
     const promises=[];
-    selectedAlumnos.forEach(alumno=>{
-      selectedProfs.forEach(prof=>{
-        const templateParams={
-          to_email:prof.email,
-          nombre:alumno,
-          clase:"",
-          dias:evento.dias,
-          ini:evento.ini,
-          fin:evento.fin,
-          evento:evento.nombre,
-          subject:`Autorización ${evento.nombre} (${evento.dias})`
-        };
-        promises.push(emailjs.send(serviceId,templateId,templateParams)
-          .then(()=>({ok:true}))
-          .catch(()=>({ok:false})));
-      });
-    });
+    selectedAlumnos.forEach(alumno=>{ selectedProfs.forEach(prof=>{
+      const templateParams={to_email:prof.email,nombre:alumno,clase:"",ini:evento.ini,fin:evento.fin,evento:evento.nombre};
+      promises.push(emailjs.send(serviceId,templateId,templateParams)
+        .then(()=>({status:"fulfilled",alumno,prof:prof.email}))
+        .catch(err=>({status:"rejected",alumno,prof:prof.email,error:err})));
+    });});
     const results=await Promise.all(promises);
-    const ok=results.filter(r=>r.ok).length;
-    alert(`Envío completado. Correctos: ${ok} / Fallidos: ${results.length-ok}`);
+    const ok=results.filter(r=>r.status==="fulfilled").length;
+    const fail=results.filter(r=>r.status==="rejected").length;
+    alert(`Envio completado. Éxitos: ${ok}. Fallos: ${fail}.`);
   };
 }
 </script>
 </body>
 </html>
-
-
-
-
-
-
